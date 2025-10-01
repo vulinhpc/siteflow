@@ -1,16 +1,14 @@
-import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
-import { migrate as migratePg } from 'drizzle-orm/node-postgres/migrator';
-import { Pool } from 'pg';
 import { PGlite } from '@electric-sql/pglite';
+import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
 import { drizzle as drizzlePGlite } from 'drizzle-orm/pglite';
-import path from 'node:path';
+import { Pool } from 'pg';
 
 import * as schema from '@/models/Schema';
 
 let db: any;
 
 if (process.env.NODE_ENV === 'production') {
-  // ✅ PRODUCTION: Force PostgreSQL Cloud only
+  // ✅ PRODUCTION: Force PostgreSQL Cloud only - NO FALLBACK
   console.log('[DB] Production mode detected');
   
   if (!process.env.DATABASE_URL) {
@@ -31,33 +29,22 @@ if (process.env.NODE_ENV === 'production') {
   db = drizzlePg(pool, { schema });
   console.log('[DB] ✅ Connected to Postgres Cloud');
 
-  // Run migrations in production
-  (async () => {
-    try {
-      console.log('[DB] Running PostgreSQL migrations...');
-      await migratePg(db, {
-        migrationsFolder: path.join(process.cwd(), 'migrations'),
-      });
-      console.log('[DB] ✅ PostgreSQL migrations completed');
-    } catch (error) {
-      console.warn('[DB] ⚠️ Migration failed, continuing:', error);
-    }
-  })();
+  // NO AUTO-MIGRATE in production - migrations must be run manually before deploy
 
 } else {
   // ✅ DEVELOPMENT/TEST: Force PGLite only
   console.log('[DB] Development mode detected');
-  console.log('[DB] Using PGlite local database...');
-  
+  console.log('[DB] Using PGLite local database...');
+
   const client = new PGlite({ dataDir: './.local-db' });
   db = drizzlePGlite(client, { schema });
   console.log('[DB] ✅ Using PGlite local');
 
-  // Run PGLite migrations
+  // Run PGLite migrations for development
   (async () => {
     try {
       console.log('[DB] Running PGLite migrations...');
-      
+
       // Create basic schema for PGLite
       const createSchemaSQL = `
         -- Create organizations table
