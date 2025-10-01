@@ -49,4 +49,3 @@ if (Env.DATABASE_URL) {
 }
 
 export const db = drizzle;
-

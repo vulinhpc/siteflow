@@ -10,7 +10,6 @@ async function getDb() {
   return db;
 }
 
-
 // Validation schemas
 const createProjectSchema = z.object({
   name: z.string().min(3, 'Project name must be at least 3 characters').max(255),
