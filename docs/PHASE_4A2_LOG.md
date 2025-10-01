@@ -1596,6 +1596,52 @@ src/
 - **Performance**: Lazy loading DB connection
 - **Consistency**: Tất cả file sử dụng cùng import pattern
 
+## Fix Production DB Connection (Vercel ECONNREFUSED) ✅
+
+### Vấn đề đã sửa
+- **ECONNREFUSED 127.0.0.1**: Production vẫn cố kết nối localhost
+- **Missing validation**: Không có strict validation cho DATABASE_URL
+- **No connection test**: Không test connection trước khi sử dụng
+- **Poor error logging**: Error không rõ ràng khi connection fail
+
+### Giải pháp đã thực hiện
+
+#### 1. **Strict DATABASE_URL Validation** ✅
+- **File**: `src/db/index.ts`
+- **Validation**: Throw error nếu DATABASE_URL missing hoặc chứa localhost/127.0.0.1
+- **Code**:
+```typescript
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is required in production environment');
+}
+
+if (process.env.DATABASE_URL.includes('127.0.0.1') || process.env.DATABASE_URL.includes('localhost')) {
+  throw new Error('DATABASE_URL cannot be localhost in production. Use cloud PostgreSQL (Neon, Supabase, etc.)');
+}
+```
+
+#### 2. **Connection Test** ✅
+- **Test**: `await pool.query('SELECT 1')` ngay sau khi tạo Pool
+- **Logging**: Log masked DATABASE_URL và connection status
+- **Error handling**: Throw error với message chi tiết nếu connection fail
+
+#### 3. **Enhanced Logging** ✅
+- **Masked URL**: `postgresql://user:***@neon-host:5432/db?sslmode=require`
+- **Connection status**: `[DB] ✅ Connected to Postgres Cloud` hoặc `[DB] ❌ Connection failed`
+- **Error details**: Full error message trong logs
+
+#### 4. **Verification Results** ✅
+- **Localhost rejection**: ✅ Throw error khi DATABASE_URL chứa localhost
+- **Cloud URL acceptance**: ✅ Accept cloud DATABASE_URL format
+- **Connection test**: ✅ Test connection và log kết quả
+- **Error handling**: ✅ Throw error rõ ràng khi connection fail
+
+### Kết quả
+- **Production safety**: Không thể kết nối localhost trong production
+- **Clear debugging**: Logs rõ ràng để debug connection issues
+- **Fail fast**: Throw error ngay nếu connection không thành công
+- **Vercel ready**: Code sẵn sàng deploy với cloud DATABASE_URL
+
 ## Next Steps
 1. **Deploy lên Vercel**: Code đã sẵn sàng để deploy
 2. **Cấu hình environment variables**: Cần set `DATABASE_URL` trong Vercel dashboard
