@@ -7,31 +7,22 @@ import { unstable_setRequestLocale } from 'next-intl/server';
 import { ThemeProvider } from 'next-themes';
 
 import { DemoBadge } from '@/components/DemoBadge';
+import { QueryProvider } from '@/providers/query-client-provider';
 import { AllLocales } from '@/utils/AppConfig';
 
 export const metadata: Metadata = {
-  icons: [
-    {
-      rel: 'apple-touch-icon',
-      url: '/apple-touch-icon.png',
-    },
-    {
-      rel: 'icon',
-      type: 'image/png',
-      sizes: '32x32',
-      url: '/favicon-32x32.png',
-    },
-    {
-      rel: 'icon',
-      type: 'image/png',
-      sizes: '16x16',
-      url: '/favicon-16x16.png',
-    },
-    {
-      rel: 'icon',
-      url: '/favicon.ico',
-    },
-  ],
+  title: 'SiteFlow - Construction Project Management',
+  description: 'Professional construction project management platform',
+  icons: {
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
 };
 
 export function generateStaticParams() {
@@ -80,9 +71,11 @@ export default function RootLayout(props: {
               locale={props.params.locale}
               messages={messages}
             >
-              {props.children}
+              <QueryProvider>
+                {props.children}
 
-              <DemoBadge />
+                <DemoBadge />
+              </QueryProvider>
             </NextIntlClientProvider>
           </ThemeProvider>
         </body>
