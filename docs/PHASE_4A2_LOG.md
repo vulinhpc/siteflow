@@ -1475,11 +1475,78 @@ git push origin fix/4a1-upload-gallery-create-project
 - **Build**: ✅ Thành công
 - **Ready for Vercel**: ✅ Sẵn sàng deploy
 
+## Fix DB Config on Vercel ✅
+
+### Vấn đề đã sửa
+- **Auto-migrate trong production**: Code tự động chạy migration trong runtime production
+- **Localhost fallback**: Có thể fallback về localhost nếu DATABASE_URL không đúng
+- **Production logs**: Vẫn hiển thị connection đến 127.0.0.1:5432
+
+### Giải pháp đã thực hiện
+
+#### 1. **Loại bỏ Auto-Migrate trong Production** ✅
+- **File**: `src/db/index.ts`
+- **Thay đổi**: Xóa code "Running PostgreSQL migrations..." trong production
+- **Kết quả**: Migration chỉ chạy thủ công trước deploy: `pnpm db:migrate`
+
+#### 2. **Tăng cường Validation DATABASE_URL** ✅
+- **Validation**: Kiểm tra DATABASE_URL không được chứa localhost/127.0.0.1
+- **Error handling**: Throw error rõ ràng nếu DATABASE_URL không hợp lệ
+- **Kết quả**: Đảm bảo production chỉ kết nối cloud PostgreSQL
+
+#### 3. **Tách biệt rõ ràng Dev vs Prod** ✅
+```typescript
+if (process.env.NODE_ENV === 'production') {
+  // ✅ PRODUCTION: Force PostgreSQL Cloud only - NO FALLBACK
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is required in production environment');
+  }
+
+  // Validate DATABASE_URL is not localhost
+  if (process.env.DATABASE_URL.includes('127.0.0.1') || process.env.DATABASE_URL.includes('localhost')) {
+    throw new Error('DATABASE_URL cannot be localhost in production. Use cloud PostgreSQL (Neon, Supabase, etc.)');
+  }
+
+  // NO AUTO-MIGRATE in production - migrations must be run manually before deploy
+} else {
+  // ✅ DEVELOPMENT/TEST: Force PGLite only
+  // Run PGLite migrations for development
+}
+```
+
+#### 4. **Test Build & Deploy** ✅
+- **Build**: `pnpm build` thành công (exit code 0)
+- **Commit**: `git commit -m "fix: remove auto-migrate and localhost fallback for production DB"`
+- **Push**: `git push origin main` thành công
+- **Kết quả**: Code sẵn sàng deploy lên Vercel
+
+### Kết quả mong đợi trên Vercel
+1. **Deploy log**: `[DB] Production mode detected` → `[DB] Connected to Postgres Cloud`
+2. **Không còn ECONNREFUSED**: Không còn lỗi kết nối 127.0.0.1:5432
+3. **GET /api/v1/projects**: Trả dữ liệu từ DB cloud
+4. **POST /api/v1/projects**: Tạo record thành công
+
+### Files Modified
+1. `src/db/index.ts` - Removed auto-migrate, added strict validation
+2. `docs/PHASE_4A2_LOG.md` - Updated with DB config fix
+
+### Evidence
+- **Fixed Code**: `src/db/index.ts` shows clean separation dev vs prod
+- **Build Success**: Terminal output shows build completed successfully
+- **Git Commit**: `85ac280` with proper commit message
+
+### Acceptance Criteria Met ✅
+- ✅ **Production**: Force PostgreSQL Cloud only, no fallback
+- ✅ **No auto-migrate**: Migrations run manually before deploy
+- ✅ **Strict validation**: DATABASE_URL cannot be localhost
+- ✅ **Build success**: Production build completed
+- ✅ **Git push**: Code pushed to GitHub successfully
+
 ## Next Steps
 1. **Deploy lên Vercel**: Code đã sẵn sàng để deploy
 2. **Cấu hình environment variables**: Cần set `DATABASE_URL` trong Vercel dashboard
 3. **Test production**: Kiểm tra API hoạt động trên Vercel
-4. **Monitor logs**: Xem Vercel logs để verify error logging hoạt động
+4. **Monitor logs**: Xem Vercel logs để verify DB connection
 5. Hoàn thiện sidebar/header responsive
 6. Cải thiện E2E test stability
 7. Thêm theme toggle và i18n switcher

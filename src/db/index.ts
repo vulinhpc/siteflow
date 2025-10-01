@@ -10,7 +10,7 @@ let db: any;
 if (process.env.NODE_ENV === 'production') {
   // ✅ PRODUCTION: Force PostgreSQL Cloud only - NO FALLBACK
   console.log('[DB] Production mode detected');
-  
+
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is required in production environment');
   }
@@ -30,7 +30,6 @@ if (process.env.NODE_ENV === 'production') {
   console.log('[DB] ✅ Connected to Postgres Cloud');
 
   // NO AUTO-MIGRATE in production - migrations must be run manually before deploy
-
 } else {
   // ✅ DEVELOPMENT/TEST: Force PGLite only
   console.log('[DB] Development mode detected');

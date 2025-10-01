@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 
-import { db } from '@/libs/DB';
+import { db } from '@/db';
 
 export type OrgContext = {
   orgId: string;
@@ -16,7 +16,7 @@ export async function runWithOrgContext<T>(
   context: OrgContext,
   operation: () => Promise<T>,
 ): Promise<T> {
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async (tx: any) => {
     // Set session variables for RLS
     await tx.execute(sql`SET LOCAL app.current_org = ${context.orgId}`);
     await tx.execute(sql`SET LOCAL app.current_user_id = ${context.userId}`);

@@ -2,7 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { and, eq } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 
-import { db } from '@/libs/DB';
+import { db } from '@/db';
 import { membershipsSchema, organizationSchema, usersSchema } from '@/models/Schema';
 
 import { hasRole } from './db-context';

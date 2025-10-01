@@ -1,5 +1,5 @@
 // E2E Seed Script
-import { db } from '@/libs/DB';
+import { db } from '@/db';
 import { membershipsSchema, organizationSchema, usersSchema } from '@/models/Schema';
 
 async function seedE2EData() {
