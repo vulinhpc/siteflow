@@ -21,7 +21,7 @@ const createProjectSchema = z.object({
     const num = typeof val === 'number' ? val : Number.parseFloat(val);
     return Number.isNaN(num) ? null : num;
   }),
-  status: z.enum(['PLANNING', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED']).default('PLANNING'),
+  status: z.enum(['PLANNING', 'IN_PROGRESS', 'DONE', 'ON_HOLD', 'CANCELLED']).default('PLANNING'),
   startDate: z.string().optional().transform((val) => {
     if (!val || val === '') {
       return null;

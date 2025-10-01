@@ -22,50 +22,7 @@ async function seed() {
       console.log('ℹ️ Organization already exists:', orgData.id);
     }
 
-    // 2. Tạo 35+ projects mẫu
-    const projectNames = [
-      'Dự án nhà phố 3 tầng',
-'Chung cư cao cấp',
-'Biệt thự ven sông',
-'Nhà xưởng công nghiệp',
-      'Trung tâm thương mại',
-'Bệnh viện đa khoa',
-'Trường học quốc tế',
-'Khách sạn 5 sao',
-      'Văn phòng cho thuê',
-'Khu dân cư cao cấp',
-'Nhà máy sản xuất',
-'Kho bãi logistics',
-      'Trung tâm hội nghị',
-'Sân vận động',
-'Bảo tàng nghệ thuật',
-'Thư viện công cộng',
-      'Trung tâm y tế',
-'Nhà ga tàu điện',
-'Cầu vượt sông',
-'Đường cao tốc',
-      'Khu du lịch sinh thái',
-'Resort biển',
-'Golf course',
-'Sân bay tư nhân',
-      'Nhà máy điện mặt trời',
-'Trạm xử lý nước',
-'Khu công nghệ cao',
-'Trung tâm dữ liệu',
-      'Nhà máy lọc dầu',
-'Khu chế xuất',
-'Cảng biển',
-'Sân bay quốc tế',
-      'Tòa nhà văn phòng',
-'Chung cư tầm trung',
-'Nhà phố liền kề',
-'Biệt thự biển',
-      'Khu đô thị mới',
-'Trung tâm thương mại',
-'Bệnh viện tư nhân',
-'Trường đại học',
-    ];
-
+    // 2. Tạo 30 projects mẫu
     const statuses = ['PLANNING', 'IN_PROGRESS', 'DONE', 'ON_HOLD', 'CANCELLED'] as const;
     const projects = [];
 
