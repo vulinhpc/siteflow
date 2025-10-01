@@ -66,13 +66,13 @@ async function seed() {
 'Trường đại học',
     ];
 
-    const statuses = ['PLANNING', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'] as const;
+    const statuses = ['PLANNING', 'IN_PROGRESS', 'DONE', 'ON_HOLD', 'CANCELLED'] as const;
     const projects = [];
 
-    for (let i = 0; i < 35; i++) {
-      const name = `${projectNames[i % projectNames.length]} ${i + 1}`;
+    for (let i = 0; i < 30; i++) {
+      const name = `Project ${i + 1}`;
       const status = statuses[i % statuses.length];
-      const budget = 1000000000 + (i * 100000000); // 1B to 4.5B
+      const budget = 1000000000 + (i * 100000000); // 1B to 4B
       const startDate = new Date(2024, 0, 1 + (i * 10));
       const endDate = new Date(2024, 11, 31 - (i * 5));
 
@@ -80,14 +80,15 @@ async function seed() {
         id: `project_${i + 1}`,
         orgId: 'org_sample_123',
         name,
-        description: `Mô tả chi tiết cho ${name}`,
+        description: `Detailed description for ${name} - A comprehensive construction project with modern design and sustainable materials.`,
         status,
         budget: budget.toString(),
         startDate,
         endDate,
-        address: `Địa chỉ ${i + 1}, TP.HCM`,
-        clientName: `Khách hàng ${i + 1}`,
+        address: `Address ${i + 1}, Ho Chi Minh City`,
+        clientName: `Client ${i + 1}`,
         clientContact: `090${String(i).padStart(7, '0')}`,
+        thumbnailUrl: `https://picsum.photos/400/300?random=${i + 1}`,
       };
 
       try {
@@ -236,7 +237,7 @@ async function seed() {
       console.log('ℹ️ Daily log tasks already exist');
     }
 
-    console.log('🎉 Seed OK');
+    console.log('✅ Seeding completed');
     console.log('📊 Summary:');
     console.log(`   - 1 Organization: org_sample_123`);
     console.log(`   - ${projects.length} Projects`);

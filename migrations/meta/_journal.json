@@ -15,6 +15,13 @@
       "when": 1759227540273,
       "tag": "0001_redundant_cloak",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1759324319102,
+      "tag": "0002_keen_switch",
+      "breakpoints": true
     }
   ]
 }

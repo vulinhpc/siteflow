@@ -20,8 +20,8 @@ import {
 export const projectStatusEnum = pgEnum('project_status', [
   'PLANNING',
   'IN_PROGRESS',
+  'DONE',
   'ON_HOLD',
-  'COMPLETED',
   'CANCELLED',
 ]);
 
