@@ -1,17 +1,17 @@
-// Migrate Vercel Postgres database
+// Migration script for Vercel deployment
 const { Client } = require('pg');
 
-async function migrateVercelPostgres() {
+async function migrateVercel() {
   const connectionString = process.env.DATABASE_URL;
 
   if (!connectionString) {
     console.error('❌ DATABASE_URL not set');
-    console.log('Please set: export DATABASE_URL="postgres://..."');
+    console.log('Please set DATABASE_URL in Vercel environment variables');
     process.exit(1);
   }
 
-  console.log('🔗 Migrating Vercel Postgres database...');
-  console.log('📍 Connection string:', connectionString.replace(/:[^:@]+@/, ':***@'));
+  console.log('🚀 Running Vercel migration...');
+  console.log('📍 Database:', connectionString.replace(/:[^:@]+@/, ':***@'));
 
   const client = new Client({
     connectionString,
@@ -20,6 +20,30 @@ async function migrateVercelPostgres() {
   try {
     await client.connect();
     console.log('✅ Connected to Vercel Postgres successfully!');
+
+    // Check if projects table exists
+    const tableCheck = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_name = 'projects'
+      );
+    `);
+
+    if (tableCheck.rows[0].exists) {
+      console.log('ℹ️ Projects table already exists, checking data...');
+      
+      // Check if we have data
+      const countResult = await client.query('SELECT COUNT(*) FROM projects');
+      const projectCount = parseInt(countResult.rows[0].count);
+      
+      if (projectCount > 0) {
+        console.log(`✅ Database already has ${projectCount} projects, migration not needed`);
+        return;
+      }
+    }
+
+    console.log('🔄 Running migration...');
 
     // Create organizations table
     await client.query(`
@@ -232,13 +256,22 @@ async function migrateVercelPostgres() {
     const countResult = await client.query('SELECT COUNT(*) FROM projects');
     console.log('📈 Total projects:', countResult.rows[0].count);
 
-    console.log('🎉 Vercel Postgres migration completed successfully!');
+    console.log('🎉 Vercel migration completed successfully!');
   } catch (error) {
-    console.error('❌ Migration failed:', error.message);
+    console.error('❌ Vercel migration failed:', error.message);
     process.exit(1);
   } finally {
     await client.end();
   }
 }
 
-migrateVercelPostgres();
+// Run migration
+migrateVercel()
+  .then(() => {
+    console.log('✅ Migration completed successfully');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('❌ Migration failed:', error);
+    process.exit(1);
+  });
