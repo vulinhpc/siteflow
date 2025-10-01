@@ -1,16 +1,31 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
-import { CreateProjectButton, CreateProjectModal } from './CreateProjectModal';
+import { CreateProjectModal } from "./CreateProjectModal";
 
 type ProjectModalProviderProps = {
   onProjectCreated?: () => void;
   children?: React.ReactNode;
 };
 
-export function ProjectModalProvider({ onProjectCreated, children }: ProjectModalProviderProps) {
+export function ProjectModalProvider({
+  onProjectCreated,
+  children,
+}: ProjectModalProviderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Listen for custom event to open modal
+  React.useEffect(() => {
+    const handleOpenModal = () => {
+      setIsModalOpen(true);
+    };
+
+    window.addEventListener("openCreateProjectModal", handleOpenModal);
+    return () => {
+      window.removeEventListener("openCreateProjectModal", handleOpenModal);
+    };
+  }, []);
 
   const handleCreateProject = async (data: {
     name: string;
@@ -20,26 +35,26 @@ export function ProjectModalProvider({ onProjectCreated, children }: ProjectModa
     thumbnailUrl?: string;
   }) => {
     try {
-      const response = await fetch('/api/v1/projects', {
-        method: 'POST',
+      const response = await fetch("/api/v1/projects", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to create project');
+        throw new Error(errorData.detail || "Failed to create project");
       }
 
-      const result = await response.json();
-      console.log('Project created:', result);
+      await response.json();
+      // Project created successfully
 
       // Trigger refresh callback
       onProjectCreated?.();
     } catch (error) {
-      console.error('Error creating project:', error);
+      console.error("Error creating project:", error);
       throw error;
     }
   };
@@ -47,7 +62,6 @@ export function ProjectModalProvider({ onProjectCreated, children }: ProjectModa
   return (
     <>
       {children}
-      <CreateProjectButton onClick={() => setIsModalOpen(true)} />
       <CreateProjectModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}

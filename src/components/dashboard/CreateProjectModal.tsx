@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import { zodResolver } from "@hookform/resolvers/zod";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { Button } from '@/components/ui/button';
-import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
+import { Button } from "@/components/ui/button";
+import { CloudinaryUpload } from "@/components/ui/cloudinary-upload";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -22,27 +22,43 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select-simple';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/toast';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select-simple";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/toast";
 
 // Zod schema matching API requirements
 const createProjectSchema = z.object({
-  name: z.string().min(1, 'Project name is required').max(255, 'Project name must be at most 255 characters'),
-  status: z.enum(['PLANNING', 'IN_PROGRESS', 'DONE', 'ON_HOLD', 'CANCELLED'], {
-    required_error: 'Project status is required',
+  name: z
+    .string()
+    .min(1, "Project name is required")
+    .max(255, "Project name must be at most 255 characters"),
+  status: z.enum(["PLANNING", "IN_PROGRESS", "DONE", "ON_HOLD", "CANCELLED"], {
+    required_error: "Project status is required",
   }),
   description: z.string().optional(),
-  endDate: z.string().optional().refine((val) => {
-    if (!val) {
-      return true;
-    }
-    const date = new Date(val);
-    return !Number.isNaN(date.getTime());
-  }, 'Invalid date format'),
-  thumbnailUrl: z.string().url('Invalid URL format').optional().or(z.literal('')),
+  endDate: z
+    .string()
+    .optional()
+    .refine((val) => {
+      if (!val) {
+        return true;
+      }
+      const date = new Date(val);
+      return !Number.isNaN(date.getTime());
+    }, "Invalid date format"),
+  thumbnailUrl: z
+    .string()
+    .url("Invalid URL format")
+    .optional()
+    .or(z.literal("")),
 });
 
 type CreateProjectFormData = z.infer<typeof createProjectSchema>;
@@ -65,13 +81,13 @@ export function CreateProjectModal({
   const form = useForm<CreateProjectFormData>({
     resolver: zodResolver(createProjectSchema),
     defaultValues: {
-      name: '',
-      status: 'PLANNING',
-      description: '',
-      endDate: '',
-      thumbnailUrl: '',
+      name: "",
+      status: "PLANNING",
+      description: "",
+      endDate: "",
+      thumbnailUrl: "",
     },
-    mode: 'onChange',
+    mode: "onChange",
   });
 
   const handleSubmit = async (data: CreateProjectFormData) => {
@@ -89,16 +105,17 @@ export function CreateProjectModal({
       onOpenChange(false);
       onProjectCreated?.();
       addToast({
-        type: 'success',
-        title: 'Project Created',
-        description: 'Project has been created successfully!',
+        type: "success",
+        title: "Project Created",
+        description: "Project has been created successfully!",
       });
     } catch (error) {
-      console.error('Form submit error:', error);
+      console.error("Form submit error:", error);
       addToast({
-        type: 'error',
-        title: 'Failed to Create Project',
-        description: error instanceof Error ? error.message : 'Failed to create project',
+        type: "error",
+        title: "Failed to Create Project",
+        description:
+          error instanceof Error ? error.message : "Failed to create project",
       });
     }
   };
@@ -123,12 +140,16 @@ export function CreateProjectModal({
         <DialogHeader>
           <DialogTitle id="create-project-title">Create Project</DialogTitle>
           <DialogDescription id="create-project-description">
-            Create a new construction project to track progress and manage resources.
+            Create a new construction project to track progress and manage
+            resources.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             {/* Project Name - Required */}
             <FormField
               control={form.control}
@@ -141,8 +162,14 @@ export function CreateProjectModal({
                       id="project-name"
                       placeholder="Enter project name"
                       {...field}
-                      className={form.formState.errors.name ? 'border-destructive' : ''}
-                      aria-describedby={form.formState.errors.name ? 'project-name-error' : undefined}
+                      className={
+                        form.formState.errors.name ? "border-destructive" : ""
+                      }
+                      aria-describedby={
+                        form.formState.errors.name
+                          ? "project-name-error"
+                          : undefined
+                      }
                     />
                   </FormControl>
                   <FormMessage id="project-name-error" />
@@ -162,8 +189,17 @@ export function CreateProjectModal({
                       <SelectTrigger
                         id="project-status"
                         name="status"
-                        className={form.formState.errors.status ? 'border-destructive' : ''}
-                        aria-describedby={form.formState.errors.status ? 'project-status-error' : undefined}
+                        data-testid="project-status"
+                        className={
+                          form.formState.errors.status
+                            ? "border-destructive"
+                            : ""
+                        }
+                        aria-describedby={
+                          form.formState.errors.status
+                            ? "project-status-error"
+                            : undefined
+                        }
                       >
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
@@ -187,7 +223,9 @@ export function CreateProjectModal({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel htmlFor="project-description">Description</FormLabel>
+                  <FormLabel htmlFor="project-description">
+                    Description
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       id="project-description"
@@ -195,9 +233,13 @@ export function CreateProjectModal({
                       placeholder="Enter project description"
                       className="resize-none"
                       rows={3}
-                      value={field.value ?? ''}
+                      value={field.value ?? ""}
                       onChange={field.onChange}
-                      aria-describedby={form.formState.errors.description ? 'project-description-error' : undefined}
+                      aria-describedby={
+                        form.formState.errors.description
+                          ? "project-description-error"
+                          : undefined
+                      }
                     />
                   </FormControl>
                   <FormMessage id="project-description-error" />
@@ -217,10 +259,18 @@ export function CreateProjectModal({
                       id="project-end-date"
                       name="endDate"
                       type="date"
-                      value={field.value ?? ''}
+                      value={field.value ?? ""}
                       onChange={field.onChange}
-                      className={form.formState.errors.endDate ? 'border-destructive' : ''}
-                      aria-describedby={form.formState.errors.endDate ? 'project-end-date-error' : undefined}
+                      className={
+                        form.formState.errors.endDate
+                          ? "border-destructive"
+                          : ""
+                      }
+                      aria-describedby={
+                        form.formState.errors.endDate
+                          ? "project-end-date-error"
+                          : undefined
+                      }
                     />
                   </FormControl>
                   <FormMessage id="project-end-date-error" />
@@ -234,17 +284,23 @@ export function CreateProjectModal({
               name="thumbnailUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel htmlFor="project-thumbnail">Project Thumbnail</FormLabel>
+                  <FormLabel htmlFor="project-thumbnail">
+                    Project Thumbnail
+                  </FormLabel>
                   <FormControl>
                     <CloudinaryUpload
-                      value={field.value ?? ''}
+                      value={field.value ?? ""}
                       onChange={field.onChange}
-                      onRemove={() => field.onChange('')}
+                      onRemove={() => field.onChange("")}
                       accept="image/*"
                       maxSize={5}
                       folder="projects"
                       publicId={`project_${Date.now()}`}
-                      className={form.formState.errors.thumbnailUrl ? 'border-destructive' : ''}
+                      className={
+                        form.formState.errors.thumbnailUrl
+                          ? "border-destructive"
+                          : ""
+                      }
                       disabled={form.formState.isSubmitting}
                     />
                   </FormControl>
@@ -272,16 +328,14 @@ export function CreateProjectModal({
                 role="button"
                 data-testid="submit-button"
               >
-                {form.formState.isSubmitting
-                  ? (
-                      <>
-                        <div className="mr-2 size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                        Saving...
-                      </>
-                    )
-                  : (
-                      'Save'
-                    )}
+                {form.formState.isSubmitting ? (
+                  <>
+                    <div className="mr-2 size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save"
+                )}
               </Button>
             </DialogFooter>
           </form>

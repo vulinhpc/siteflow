@@ -1,22 +1,21 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 import {
   Building2,
   Calendar,
   DollarSign,
   TrendingUp,
   Users,
-} from 'lucide-react';
-import React from 'react';
+} from "lucide-react";
+import React from "react";
 
-import { CreateProjectModal } from '@/components/admin/create-project-modal';
-import { KPICard } from '@/components/admin/kpi-card';
-import { PaginatedTable } from '@/components/admin/paginated-table';
-import { useProject } from '@/components/admin/project-context';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { KPICard } from "@/components/admin/kpi-card";
+import { PaginatedTable } from "@/components/admin/paginated-table";
+import { CreateProjectModal } from "@/components/dashboard/CreateProjectModal";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -25,8 +24,8 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
-import { SafeImage } from '@/components/ui/safe-image';
+} from "@/components/ui/pagination";
+import { SafeImage } from "@/components/ui/safe-image";
 
 // Project type definition
 type Project = {
@@ -53,8 +52,8 @@ type Project = {
 
 const projectColumns = [
   {
-    key: 'thumbnailUrl' as const,
-    label: 'Thumbnail',
+    key: "thumbnailUrl" as const,
+    label: "Thumbnail",
     render: (value: string) => (
       <div className="h-12 w-16 overflow-hidden rounded-lg border">
         <SafeImage
@@ -68,67 +67,75 @@ const projectColumns = [
     ),
   },
   {
-    key: 'name' as const,
-    label: 'Project Name',
+    key: "name" as const,
+    label: "Project Name",
     sortable: true,
   },
   {
-    key: 'status' as const,
-    label: 'Status',
+    key: "status" as const,
+    label: "Status",
     render: (value: string) => (
       <span
         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-          value === 'COMPLETED'
-            ? 'bg-green-100 text-green-800'
-            : value === 'IN_PROGRESS'
-              ? 'bg-blue-100 text-blue-800'
-              : 'bg-yellow-100 text-yellow-800'
+          value === "COMPLETED"
+            ? "bg-green-100 text-green-800"
+            : value === "IN_PROGRESS"
+              ? "bg-blue-100 text-blue-800"
+              : "bg-yellow-100 text-yellow-800"
         }`}
       >
-        {value === 'PLANNING' ? 'Planning' : value === 'IN_PROGRESS' ? 'In Progress' : value === 'COMPLETED' ? 'Completed' : value}
+        {value === "PLANNING"
+          ? "Planning"
+          : value === "IN_PROGRESS"
+            ? "In Progress"
+            : value === "COMPLETED"
+              ? "Completed"
+              : value}
       </span>
     ),
   },
   {
-    key: 'managerName' as const,
-    label: 'Manager',
+    key: "managerName" as const,
+    label: "Manager",
     render: (_value: string, project: Project) => (
       <div className="flex items-center space-x-2">
         <Avatar className="size-6">
           <AvatarImage src={project.managerAvatar} />
           <AvatarFallback className="text-xs">
-            {project.managerName?.charAt(0) || 'M'}
+            {project.managerName?.charAt(0) || "M"}
           </AvatarFallback>
         </Avatar>
         <span className="text-sm font-medium">
-          {project.managerName || 'Unassigned'}
+          {project.managerName || "Unassigned"}
         </span>
       </div>
     ),
   },
   {
-    key: 'budget' as const,
-    label: 'Budget',
+    key: "budget" as const,
+    label: "Budget",
     render: (value: string) => (
       <span className="font-mono">
         {value
-? new Intl.NumberFormat('vi-VN', {
-          style: 'currency',
-          currency: 'VND',
-        }).format(Number(value))
-: 'N/A'}
+          ? new Intl.NumberFormat("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            }).format(Number(value))
+          : "N/A"}
       </span>
     ),
   },
   {
-    key: 'startDate' as const,
-    label: 'Start Date',
-    render: (value: string) => value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A',
+    key: "startDate" as const,
+    label: "Start Date",
+    render: (value: string) =>
+      value ? new Date(value).toLocaleDateString("vi-VN") : "N/A",
   },
   {
-    key: 'endDate' as const,
-    label: 'End Date',
-    render: (value: string) => value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A',
+    key: "endDate" as const,
+    label: "End Date",
+    render: (value: string) =>
+      value ? new Date(value).toLocaleDateString("vi-VN") : "N/A",
   },
 ];
 
@@ -140,20 +147,20 @@ function useProjects(page: number = 1) {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['projects', page],
+    queryKey: ["projects", page],
     queryFn: async () => {
       const url = `/api/v1/projects?page=${page}&limit=10`;
 
       const response = await fetch(url, {
         headers: {
-          'x-e2e-bypass': 'true',
-          'x-org-id': 'org_e2e_default',
-          'x-user-id': 'test-user',
+          "x-e2e-bypass": "true",
+          "x-org-id": "org_e2e_default",
+          "x-user-id": "test-user",
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch projects');
+        throw new Error("Failed to fetch projects");
       }
 
       const data = await response.json();
@@ -175,9 +182,10 @@ function useProjects(page: number = 1) {
 }
 
 const DashboardIndexPage = () => {
-  const { isCreateModalOpen, setIsCreateModalOpen } = useProject();
   const [currentPage, setCurrentPage] = React.useState(1);
-  const { projects, total, page, totalPages, loading, error, refetch } = useProjects(currentPage);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const { projects, total, page, totalPages, loading, error, refetch } =
+    useProjects(currentPage);
 
   // Handle page change
   const handlePageChange = (newPage: number) => {
@@ -190,39 +198,42 @@ const DashboardIndexPage = () => {
     refetch();
   };
 
-  const handleCreateProject = async (data: any) => {
-    const payload = {
-      name: data.name,
-      description: data.description,
-      budget: data.budget ? data.budget.toString() : undefined,
-      startDate: data.startDate ? new Date(data.startDate).toISOString() : undefined,
-      endDate: data.endDate ? new Date(data.endDate).toISOString() : undefined,
-      status: data.status,
-      managerId: data.managerId,
-      thumbnailUrl: data.thumbnailUrl,
-    };
-
-    const response = await fetch('/api/v1/projects', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-e2e-bypass': 'true',
-        'x-org-id': 'org_e2e_default',
-        'x-user-id': 'test-user',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      console.error('API Error:', error);
-      throw new Error(error.detail || 'Failed to create project');
-    }
-
-    await response.json();
-
-    // 🚀 Refresh the projects list (go back to first page)
+  // Handle project creation refresh
+  const handleProjectCreated = () => {
     handleRefresh();
+  };
+
+  // Handle create project
+  const handleCreateProject = async (data: {
+    name: string;
+    status: string;
+    description?: string;
+    endDate?: string;
+    thumbnailUrl?: string;
+  }) => {
+    try {
+      const response = await fetch("/api/v1/projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-e2e-bypass": "true",
+          "x-org-id": "org_sample_123",
+          "x-user-id": "user_test_123",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to create project");
+      }
+
+      await response.json();
+      handleRefresh();
+    } catch (error) {
+      console.error("Error creating project:", error);
+      throw error;
+    }
   };
 
   const handleEditProject = (_project: any) => {
@@ -236,55 +247,82 @@ const DashboardIndexPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back! Here's what's happening with your construction projects.
-        </p>
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome back! Here's what's happening with your construction
+            projects.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            data-testid="create-project-button"
+            role="button"
+          >
+            Create Project
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <KPICard
           title="Total Projects"
-          value={loading ? '...' : total}
+          value={loading ? "..." : total}
           description="Active construction projects"
           icon={Building2}
-          trend={{ value: 12, label: 'from last month' }}
+          trend={{ value: 12, label: "from last month" }}
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
         <KPICard
           title="Total Budget"
-          value={loading
-? '...'
-: projects.reduce((total: number, project: Project) => {
-            const budget = project.budget ? Number(project.budget) : 0;
-            return total + budget;
-          }, 0).toLocaleString('vi-VN', {
-            style: 'currency',
-            currency: 'VND',
-            notation: 'compact',
-            maximumFractionDigits: 1,
-          })}
+          value={
+            loading
+              ? "..."
+              : projects
+                  .reduce((total: number, project: Project) => {
+                    const budget = project.budget ? Number(project.budget) : 0;
+                    return total + budget;
+                  }, 0)
+                  .toLocaleString("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                    notation: "compact",
+                    maximumFractionDigits: 1,
+                  })
+          }
           description="Current page project budgets"
           icon={DollarSign}
-          trend={{ value: 8, label: 'from last month' }}
+          trend={{ value: 8, label: "from last month" }}
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
         <KPICard
           title="Active Projects"
-          value={loading ? '...' : projects.filter((p: Project) => p.status === 'IN_PROGRESS').length}
+          value={
+            loading
+              ? "..."
+              : projects.filter((p: Project) => p.status === "IN_PROGRESS")
+                  .length
+          }
           description="Current page active projects"
           icon={Calendar}
-          trend={{ value: -3, label: 'from last week' }}
+          trend={{ value: -3, label: "from last week" }}
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
         <KPICard
           title="Team Members"
-          value={loading ? '...' : new Set(projects.map((p: Project) => p.managerId).filter(Boolean)).size}
+          value={
+            loading
+              ? "..."
+              : new Set(
+                  projects.map((p: Project) => p.managerId).filter(Boolean),
+                ).size
+          }
           description="Current page managers"
           icon={Users}
-          trend={{ value: 2, label: 'new this month' }}
+          trend={{ value: 2, label: "new this month" }}
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
       </div>
@@ -305,35 +343,37 @@ const DashboardIndexPage = () => {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {loading
-? (
+          {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <div className="mx-auto mb-2 size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                <p className="text-sm text-muted-foreground">Loading projects...</p>
+                <p className="text-sm text-muted-foreground">
+                  Loading projects...
+                </p>
               </div>
             </div>
-          )
-: error
-? (
+          ) : error ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <p className="mb-2 text-sm text-destructive">Error loading projects</p>
+                <p className="mb-2 text-sm text-destructive">
+                  Error loading projects
+                </p>
                 <p className="text-xs text-muted-foreground">{error}</p>
               </div>
             </div>
-          )
-: projects.length === 0
-? (
+          ) : projects.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <Building2 className="mx-auto mb-2 size-8 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">No projects found</p>
-                <p className="text-xs text-muted-foreground">Create your first project to get started</p>
+                <p className="text-sm text-muted-foreground">
+                  No projects found
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Create your first project to get started
+                </p>
               </div>
             </div>
-          )
-: (
+          ) : (
             <div className="space-y-4">
               <PaginatedTable
                 data={projects}
@@ -354,36 +394,45 @@ const DashboardIndexPage = () => {
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious
-                          onClick={() => handlePageChange(Math.max(1, page - 1))}
-                          className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                          onClick={() =>
+                            handlePageChange(Math.max(1, page - 1))
+                          }
+                          className={
+                            page === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
                         />
                       </PaginationItem>
 
                       {/* Page numbers */}
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNumber;
-                        if (totalPages <= 5) {
-                          pageNumber = i + 1;
-                        } else if (page <= 3) {
-                          pageNumber = i + 1;
-                        } else if (page >= totalPages - 2) {
-                          pageNumber = totalPages - 4 + i;
-                        } else {
-                          pageNumber = page - 2 + i;
-                        }
+                      {Array.from(
+                        { length: Math.min(5, totalPages) },
+                        (_, i) => {
+                          let pageNumber;
+                          if (totalPages <= 5) {
+                            pageNumber = i + 1;
+                          } else if (page <= 3) {
+                            pageNumber = i + 1;
+                          } else if (page >= totalPages - 2) {
+                            pageNumber = totalPages - 4 + i;
+                          } else {
+                            pageNumber = page - 2 + i;
+                          }
 
-                        return (
-                          <PaginationItem key={pageNumber}>
-                            <PaginationLink
-                              onClick={() => handlePageChange(pageNumber)}
-                              isActive={pageNumber === page}
-                              className="cursor-pointer"
-                            >
-                              {pageNumber}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      })}
+                          return (
+                            <PaginationItem key={pageNumber}>
+                              <PaginationLink
+                                onClick={() => handlePageChange(pageNumber)}
+                                isActive={pageNumber === page}
+                                className="cursor-pointer"
+                              >
+                                {pageNumber}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        },
+                      )}
 
                       {totalPages > 5 && page < totalPages - 2 && (
                         <PaginationItem>
@@ -405,8 +454,14 @@ const DashboardIndexPage = () => {
 
                       <PaginationItem>
                         <PaginationNext
-                          onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
-                          className={page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                          onClick={() =>
+                            handlePageChange(Math.min(totalPages, page + 1))
+                          }
+                          className={
+                            page === totalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
                         />
                       </PaginationItem>
                     </PaginationContent>
@@ -416,22 +471,8 @@ const DashboardIndexPage = () => {
 
               {/* Show current page info */}
               <div className="text-center text-sm text-muted-foreground">
-                Showing
-{' '}
-{projects.length}
-{' '}
-of
-{' '}
-{total}
-{' '}
-projects (Page
-{' '}
-{page}
-{' '}
-of
-{' '}
-{totalPages}
-)
+                Showing {projects.length} of {total} projects (Page {page} of{" "}
+                {totalPages})
               </div>
             </div>
           )}
@@ -508,11 +549,15 @@ of
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total Budget</span>
+                <span className="text-sm text-muted-foreground">
+                  Total Budget
+                </span>
                 <span className="font-semibold">25B VND</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total Spent</span>
+                <span className="text-sm text-muted-foreground">
+                  Total Spent
+                </span>
                 <span className="font-semibold">15.9B VND</span>
               </div>
               <div className="flex items-center justify-between">
@@ -522,9 +567,14 @@ of
             </div>
             <div className="pt-2">
               <div className="h-2 w-full rounded-full bg-gray-200">
-                <div className="h-2 rounded-full bg-green-500" style={{ width: '36%' }}></div>
+                <div
+                  className="h-2 rounded-full bg-green-500"
+                  style={{ width: "36%" }}
+                ></div>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">36% budget remaining</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                36% budget remaining
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -532,10 +582,10 @@ of
 
       {/* Create Project Modal */}
       <CreateProjectModal
-        open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
         onSubmit={handleCreateProject}
-        onProjectCreated={refetch} // 🚀 Pass refetch function
+        onProjectCreated={handleProjectCreated}
       />
     </div>
   );
