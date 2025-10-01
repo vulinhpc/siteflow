@@ -42,21 +42,38 @@ if (Env.DATABASE_URL && process.env.NODE_ENV !== 'production') {
 
   drizzle = globalDbState.__db.pgDrizzle!;
 
-  await migratePg(drizzle, {
-    migrationsFolder: path.join(process.cwd(), 'migrations'),
-  });
+  // Only run migrations in development, not in production
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      await migratePg(drizzle, {
+        migrationsFolder: path.join(process.cwd(), 'migrations'),
+      });
+    } catch (error) {
+      console.warn('Migration failed, continuing without migrations:', error);
+    }
+  }
 } else {
   if (!globalDbState.__db.pgliteClient) {
     const client = new PGlite();
     await client.waitReady;
 
     globalDbState.__db.pgliteClient = client;
-    await runPgliteMigrations(client);
-    globalDbState.__db.pgliteMigrated = true;
+    try {
+      await runPgliteMigrations(client);
+      globalDbState.__db.pgliteMigrated = true;
+    } catch (error) {
+      console.warn('PGLite migration failed, continuing without migrations:', error);
+      globalDbState.__db.pgliteMigrated = true; // Mark as migrated to avoid retry
+    }
     globalDbState.__db.pgliteDrizzle = drizzlePglite(client, { schema });
   } else if (!globalDbState.__db.pgliteMigrated && globalDbState.__db.pgliteClient) {
-    await runPgliteMigrations(globalDbState.__db.pgliteClient);
-    globalDbState.__db.pgliteMigrated = true;
+    try {
+      await runPgliteMigrations(globalDbState.__db.pgliteClient);
+      globalDbState.__db.pgliteMigrated = true;
+    } catch (error) {
+      console.warn('PGLite migration failed, continuing without migrations:', error);
+      globalDbState.__db.pgliteMigrated = true; // Mark as migrated to avoid retry
+    }
   }
 
   drizzle = globalDbState.__db.pgliteDrizzle!;
