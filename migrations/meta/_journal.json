@@ -22,6 +22,13 @@
       "when": 1759324319102,
       "tag": "0002_keen_switch",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1759335657394,
+      "tag": "0003_clever_thor",
+      "breakpoints": true
     }
   ]
 }

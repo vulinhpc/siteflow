@@ -35,31 +35,54 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 
 // Zod schema matching API requirements
-const createProjectSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Project name is required")
-    .max(255, "Project name must be at most 255 characters"),
-  status: z.enum(["PLANNING", "IN_PROGRESS", "DONE", "ON_HOLD", "CANCELLED"], {
-    required_error: "Project status is required",
-  }),
-  description: z.string().optional(),
-  endDate: z
-    .string()
-    .optional()
-    .refine((val) => {
-      if (!val) {
-        return true;
+const createProjectSchema = z
+  .object({
+    name: z
+      .string()
+      .min(1, "Project name is required")
+      .max(255, "Project name must be at most 255 characters"),
+    status: z.enum(
+      ["PLANNING", "IN_PROGRESS", "DONE", "ON_HOLD", "CANCELLED"],
+      {
+        required_error: "Project status is required",
+      },
+    ),
+    description: z.string().optional(),
+    startDate: z.string().min(1, "Start date is required"),
+    endDate: z
+      .string()
+      .optional()
+      .refine((val) => {
+        if (!val) {
+          return true;
+        }
+        const date = new Date(val);
+        return !Number.isNaN(date.getTime());
+      }, "Invalid date format"),
+    managerIds: z.array(z.string()).optional(),
+    engineerIds: z.array(z.string()).optional(),
+    accountantIds: z.array(z.string()).optional(),
+    thumbnailUrl: z
+      .string()
+      .url("Invalid URL format")
+      .optional()
+      .or(z.literal("")),
+  })
+  .refine(
+    (data) => {
+      // Ensure startDate is before or equal to endDate if both are provided
+      if (data.startDate && data.endDate) {
+        const start = new Date(data.startDate);
+        const end = new Date(data.endDate);
+        return start <= end;
       }
-      const date = new Date(val);
-      return !Number.isNaN(date.getTime());
-    }, "Invalid date format"),
-  thumbnailUrl: z
-    .string()
-    .url("Invalid URL format")
-    .optional()
-    .or(z.literal("")),
-});
+      return true;
+    },
+    {
+      message: "Start date must be before or equal to end date",
+      path: ["startDate"],
+    },
+  );
 
 type CreateProjectFormData = z.infer<typeof createProjectSchema>;
 
@@ -84,7 +107,11 @@ export function CreateProjectModal({
       name: "",
       status: "PLANNING",
       description: "",
+      startDate: "",
       endDate: "",
+      managerIds: [],
+      engineerIds: [],
+      accountantIds: [],
       thumbnailUrl: "",
     },
     mode: "onChange",
@@ -127,7 +154,8 @@ export function CreateProjectModal({
 
   // Check if form is valid for submit button
   const watchedValues = form.watch();
-  const isFormValid = watchedValues.name && watchedValues.status;
+  const isFormValid =
+    watchedValues.name && watchedValues.status && watchedValues.startDate;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -217,6 +245,38 @@ export function CreateProjectModal({
               )}
             />
 
+            {/* Start Date - Required */}
+            <FormField
+              control={form.control}
+              name="startDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel htmlFor="project-start-date">
+                    Start Date *
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      id="project-start-date"
+                      type="date"
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      className={
+                        form.formState.errors.startDate
+                          ? "border-destructive"
+                          : ""
+                      }
+                      aria-describedby={
+                        form.formState.errors.startDate
+                          ? "project-start-date-error"
+                          : undefined
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage id="project-start-date-error" />
+                </FormItem>
+              )}
+            />
+
             {/* Description - Optional */}
             <FormField
               control={form.control}
@@ -277,6 +337,130 @@ export function CreateProjectModal({
                 </FormItem>
               )}
             />
+
+            {/* Project Members - Optional */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium">Project Members</h4>
+
+              {/* Managers */}
+              <FormField
+                control={form.control}
+                name="managerIds"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="project-managers">Managers</FormLabel>
+                    <FormControl>
+                      <Input
+                        id="project-managers"
+                        placeholder="Enter manager IDs (comma-separated)"
+                        value={field.value?.join(", ") ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const ids = value
+                            ? value
+                                .split(",")
+                                .map((id) => id.trim())
+                                .filter(Boolean)
+                            : [];
+                          field.onChange(ids);
+                        }}
+                        className={
+                          form.formState.errors.managerIds
+                            ? "border-destructive"
+                            : ""
+                        }
+                        aria-describedby={
+                          form.formState.errors.managerIds
+                            ? "project-managers-error"
+                            : undefined
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage id="project-managers-error" />
+                  </FormItem>
+                )}
+              />
+
+              {/* Engineers */}
+              <FormField
+                control={form.control}
+                name="engineerIds"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="project-engineers">Engineers</FormLabel>
+                    <FormControl>
+                      <Input
+                        id="project-engineers"
+                        placeholder="Enter engineer IDs (comma-separated)"
+                        value={field.value?.join(", ") ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const ids = value
+                            ? value
+                                .split(",")
+                                .map((id) => id.trim())
+                                .filter(Boolean)
+                            : [];
+                          field.onChange(ids);
+                        }}
+                        className={
+                          form.formState.errors.engineerIds
+                            ? "border-destructive"
+                            : ""
+                        }
+                        aria-describedby={
+                          form.formState.errors.engineerIds
+                            ? "project-engineers-error"
+                            : undefined
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage id="project-engineers-error" />
+                  </FormItem>
+                )}
+              />
+
+              {/* Accountants */}
+              <FormField
+                control={form.control}
+                name="accountantIds"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="project-accountants">
+                      Accountants
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        id="project-accountants"
+                        placeholder="Enter accountant IDs (comma-separated)"
+                        value={field.value?.join(", ") ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const ids = value
+                            ? value
+                                .split(",")
+                                .map((id) => id.trim())
+                                .filter(Boolean)
+                            : [];
+                          field.onChange(ids);
+                        }}
+                        className={
+                          form.formState.errors.accountantIds
+                            ? "border-destructive"
+                            : ""
+                        }
+                        aria-describedby={
+                          form.formState.errors.accountantIds
+                            ? "project-accountants-error"
+                            : undefined
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage id="project-accountants-error" />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Thumbnail Upload - Optional */}
             <FormField
