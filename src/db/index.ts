@@ -20,14 +20,28 @@ if (process.env.NODE_ENV === 'production') {
     throw new Error('DATABASE_URL cannot be localhost in production. Use cloud PostgreSQL (Neon, Supabase, etc.)');
   }
 
-  console.log('[DB] Connecting to PostgreSQL Cloud...');
+  // Log masked DATABASE_URL for debugging
+  const maskedUrl = process.env.DATABASE_URL.replace(/:([^:@]+)@/, ':***@');
+  console.log('[DB] Connecting to PostgreSQL Cloud:', maskedUrl);
+
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }, // Required for Neon/Render/Supabase
   });
 
+  // Test connection immediately
+  (async () => {
+    try {
+      console.log('[DB] Testing connection...');
+      await pool.query('SELECT 1');
+      console.log('[DB] ✅ Connected to Postgres Cloud');
+    } catch (error) {
+      console.error('[DB] ❌ Connection failed:', error);
+      throw new Error(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  })();
+
   db = drizzlePg(pool, { schema });
-  console.log('[DB] ✅ Connected to Postgres Cloud');
 
   // NO AUTO-MIGRATE in production - migrations must be run manually before deploy
 } else {

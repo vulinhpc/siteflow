@@ -1542,6 +1542,60 @@ if (process.env.NODE_ENV === 'production') {
 - ✅ **Build success**: Production build completed
 - ✅ **Git push**: Code pushed to GitHub successfully
 
+## DB/API Duplicates Cleaned ✅
+
+### Vấn đề đã sửa
+- **Duplicate DB clients**: Có nhiều file export `db` (`src/libs/DB.ts`, `src/libs/DB-build-safe.ts`)
+- **Duplicate API routes**: Có các file `route-build-safe.ts` không cần thiết
+- **Import confusion**: Các file import từ nhiều nguồn khác nhau
+- **Build errors**: Module not found do import file đã xóa
+
+### Giải pháp đã thực hiện
+
+#### 1. **Single Source of Truth** ✅
+- **Schema**: Chỉ có `src/models/Schema.ts`
+- **DB Client**: Chỉ có `src/db/index.ts`
+- **Drizzle Config**: Chỉ có `drizzle.config.ts`
+- **API Routes**: Mỗi entity chỉ có 1 `route.ts`
+
+#### 2. **Files Removed** ✅
+```
+- src/libs/DB.ts (old DB client)
+- src/libs/DB-build-safe.ts (build-safe version)
+- src/app/api/v1/media/upload/route-build-safe.ts
+- src/app/api/v1/media/project/[projectId]/route-build-safe.ts
+- src/app/api/v1/media/project/[projectId]/route.ts (redirect file)
+```
+
+#### 3. **Import Updates** ✅
+- **All files**: Import `db` từ `@/db` (src/db/index.ts)
+- **All files**: Import schema từ `@/models/Schema`
+- **API routes**: Sử dụng lazy loading `await import('@/db')`
+
+#### 4. **Final Structure** ✅
+```
+src/
+├── db/
+│   └── index.ts                    # Single DB client
+├── models/
+│   └── Schema.ts                   # Single schema
+└── app/api/v1/
+    └── projects/
+        └── route.ts                # Single API route
+```
+
+#### 5. **Verification** ✅
+- **Build**: `pnpm build` thành công
+- **API Test**: `GET /api/v1/projects` hoạt động với PGLite
+- **No Duplicates**: Không còn duplicate Pool/PGlite creation
+- **Clean Imports**: Tất cả import từ single source
+
+### Kết quả
+- **Code quality**: Single source of truth, dễ maintain
+- **Build stability**: Không còn module not found errors
+- **Performance**: Lazy loading DB connection
+- **Consistency**: Tất cả file sử dụng cùng import pattern
+
 ## Next Steps
 1. **Deploy lên Vercel**: Code đã sẵn sàng để deploy
 2. **Cấu hình environment variables**: Cần set `DATABASE_URL` trong Vercel dashboard
