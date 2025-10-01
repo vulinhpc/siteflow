@@ -6,7 +6,7 @@ import { projectsSchema } from '@/models/Schema';
 
 // Lazy load database to avoid connection during build time
 async function getDb() {
-  const { db } = await import('@/libs/DB');
+  const { db } = await import('@/db');
   return db;
 }
 
@@ -149,14 +149,14 @@ export async function GET(req: NextRequest) {
 
     // Apply search filter in memory (for now)
     const filteredItems = q
-      ? projects.filter(p =>
+      ? projects.filter((p: any) =>
           p.name.toLowerCase().includes(q.toLowerCase())
           || (p.description && p.description.toLowerCase().includes(q.toLowerCase())),
         )
       : projects;
 
     // Format response
-    const formattedItems = filteredItems.map(project => ({
+    const formattedItems = filteredItems.map((project: any) => ({
       id: project.id,
       name: project.name,
       description: project.description,
