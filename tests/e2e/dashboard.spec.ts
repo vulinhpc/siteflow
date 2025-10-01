@@ -49,7 +49,7 @@ test.describe('Dashboard E2E Tests', () => {
     await page.click('[data-testid="cancel-button"]');
 
     // Check if modal is closed
-    await expect(page.locator('[data-testid="create-project-modal"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="create-project-modal"]')).toBeHidden();
   });
 
   test('should validate form fields', async ({ page }) => {
@@ -69,7 +69,7 @@ test.describe('Dashboard E2E Tests', () => {
     await page.click('[data-testid="submit-button"]');
 
     // Check if form submits successfully (no validation errors)
-    await expect(page.locator('text=Project name required')).not.toBeVisible();
+    await expect(page.locator('text=Project name required')).toBeHidden();
   });
 
   test('should create project successfully', async ({ page }) => {
@@ -86,15 +86,15 @@ test.describe('Dashboard E2E Tests', () => {
     await page.click('[data-testid="submit-button"]');
 
     // Wait for API call to complete
-    await page.waitForResponse(response => 
-      response.url().includes('/api/v1/projects') && response.status() === 201
+    await page.waitForResponse(response =>
+      response.url().includes('/api/v1/projects') && response.status() === 201,
     );
 
     // Check if success message is shown
     await expect(page.locator('text=Project created successfully')).toBeVisible();
 
     // Check if modal is closed
-    await expect(page.locator('[data-testid="create-project-modal"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="create-project-modal"]')).toBeHidden();
 
     // Check if new project appears in table
     await expect(page.locator('text=E2E Test Project')).toBeVisible();
@@ -119,7 +119,7 @@ test.describe('Dashboard E2E Tests', () => {
     await page.setViewportSize({ width: 375, height: 667 });
 
     // Check if sidebar is hidden on mobile
-    await expect(page.locator('[data-testid="sidebar"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="sidebar"]')).toBeHidden();
 
     // Check if mobile menu button is present
     await expect(page.locator('[data-testid="mobile-menu-button"]')).toBeVisible();
@@ -134,7 +134,7 @@ test.describe('Dashboard E2E Tests', () => {
   test('should have clean console', async ({ page }) => {
     const consoleErrors: string[] = [];
 
-    page.on('console', msg => {
+    page.on('console', (msg) => {
       if (msg.type() === 'error') {
         consoleErrors.push(msg.text());
       }

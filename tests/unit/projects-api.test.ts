@@ -1,5 +1,8 @@
-import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+// Import the API route handler
+import { GET, POST } from '@/app/api/v1/projects/route';
 
 // Mock database
 const mockDb = {
@@ -18,9 +21,9 @@ const mockDb = {
 vi.mock('drizzle-orm', () => ({
   and: vi.fn((...args) => args),
   count: vi.fn(() => 'count'),
-  desc: vi.fn((field) => ({ field, direction: 'desc' })),
+  desc: vi.fn(field => ({ field, direction: 'desc' })),
   eq: vi.fn((field, value) => ({ field, value, operator: 'eq' })),
-  isNull: vi.fn((field) => ({ field, operator: 'isNull' })),
+  isNull: vi.fn(field => ({ field, operator: 'isNull' })),
 }));
 
 // Mock database connection
@@ -48,9 +51,6 @@ vi.mock('@/models/Schema', () => ({
     deletedAt: 'deletedAt',
   },
 }));
-
-// Import the API route handler
-import { GET, POST } from '@/app/api/v1/projects/route';
 
 describe('Projects API', () => {
   beforeEach(() => {

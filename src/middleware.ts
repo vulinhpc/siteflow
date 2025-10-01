@@ -1,12 +1,12 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import {
   type NextFetchEvent,
   type NextRequest,
   NextResponse,
-} from "next/server";
-import createMiddleware from "next-intl/middleware";
+} from 'next/server';
+import createMiddleware from 'next-intl/middleware';
 
-import { AllLocales, AppConfig } from "./utils/AppConfig";
+import { AllLocales, AppConfig } from './utils/AppConfig';
 
 const intlMiddleware = createMiddleware({
   locales: AllLocales,
@@ -15,19 +15,19 @@ const intlMiddleware = createMiddleware({
 });
 
 const isProtectedRoute = createRouteMatcher([
-  "/dashboard(.*)",
-  "/:locale/dashboard(.*)",
-  "/onboarding(.*)",
-  "/:locale/onboarding(.*)",
-  "/api/v1/projects(.*)",
-  "/api/v1/categories(.*)",
-  "/api/v1/tasks(.*)",
-  "/api/v1/daily-logs(.*)",
-  "/api/v1/daily-log-tasks(.*)",
-  "/api/v1/transactions(.*)",
-  "/api/v1/share-links(.*)",
-  "/api/v1/media-assets(.*)",
-  "/api/v1/users(.*)",
+  '/dashboard(.*)',
+  '/:locale/dashboard(.*)',
+  '/onboarding(.*)',
+  '/:locale/onboarding(.*)',
+  '/api/v1/projects(.*)',
+  '/api/v1/categories(.*)',
+  '/api/v1/tasks(.*)',
+  '/api/v1/daily-logs(.*)',
+  '/api/v1/daily-log-tasks(.*)',
+  '/api/v1/transactions(.*)',
+  '/api/v1/share-links(.*)',
+  '/api/v1/media-assets(.*)',
+  '/api/v1/users(.*)',
 ]);
 
 // const _isE2EBYPASS = process.env.CLERK_E2E === 'true';
@@ -38,15 +38,15 @@ export default function middleware(
 ) {
   // Check for E2E bypass header first
   if (
-    request.headers.get("x-e2e-bypass") === "true" ||
-    request.headers.get("x-e2e-bypass") === "1"
+    request.headers.get('x-e2e-bypass') === 'true'
+    || request.headers.get('x-e2e-bypass') === '1'
   ) {
-    const userId = request.headers.get("x-e2e-user") ?? "user_test_123";
-    const orgId = request.headers.get("x-e2e-org") ?? "org_sample_123";
+    const userId = request.headers.get('x-e2e-user') ?? 'user_test_123';
+    const orgId = request.headers.get('x-e2e-org') ?? 'org_sample_123';
 
     const requestHeaders = new Headers(request.headers);
-    requestHeaders.set("x-user-id", userId);
-    requestHeaders.set("x-org-id", orgId);
+    requestHeaders.set('x-user-id', userId);
+    requestHeaders.set('x-org-id', orgId);
 
     return NextResponse.next({
       request: {
@@ -55,14 +55,14 @@ export default function middleware(
     });
   }
 
-  const bypassAuth = request.cookies.get("e2e-auth-bypass")?.value === "1";
+  const bypassAuth = request.cookies.get('e2e-auth-bypass')?.value === '1';
 
   // Skip intl middleware for API routes
-  if (request.nextUrl.pathname.startsWith("/api/")) {
+  if (request.nextUrl.pathname.startsWith('/api/')) {
     // Skip auth for public API endpoints
     if (
-      request.nextUrl.pathname === "/api/health" ||
-      request.nextUrl.pathname === "/api/v1/_rbac-check"
+      request.nextUrl.pathname === '/api/health'
+      || request.nextUrl.pathname === '/api/v1/_rbac-check'
     ) {
       return NextResponse.next();
     }
@@ -76,20 +76,20 @@ export default function middleware(
 
       return clerkMiddleware(async (auth, req) => {
         // For API routes, return 401 JSON instead of redirect
-        if (req.nextUrl.pathname.startsWith("/api/")) {
+        if (req.nextUrl.pathname.startsWith('/api/')) {
           const authObj = await auth();
           if (!authObj.userId) {
             return new NextResponse(
               JSON.stringify({
-                type: "about:blank",
-                title: "Unauthorized",
+                type: 'about:blank',
+                title: 'Unauthorized',
                 status: 401,
-                detail: "Authentication required",
+                detail: 'Authentication required',
               }),
               {
                 status: 401,
                 headers: {
-                  "Content-Type": "application/problem+json",
+                  'Content-Type': 'application/problem+json',
                 },
               },
             );
@@ -103,15 +103,15 @@ export default function middleware(
   }
 
   if (
-    request.nextUrl.pathname.includes("/sign-in") ||
-    request.nextUrl.pathname.includes("/sign-up") ||
-    isProtectedRoute(request)
+    request.nextUrl.pathname.includes('/sign-in')
+    || request.nextUrl.pathname.includes('/sign-up')
+    || isProtectedRoute(request)
   ) {
     return clerkMiddleware(async (auth, req) => {
       if (!bypassAuth && isProtectedRoute(req)) {
         // For web routes, redirect to sign-in
-        const locale =
-          req.nextUrl.pathname.match(/(\/.*)\/dashboard/)?.at(1) ?? "";
+        const locale
+          = req.nextUrl.pathname.match(/(\/.*)\/dashboard/)?.at(1) ?? '';
 
         const signInUrl = new URL(`${locale}/sign-in`, req.url);
 
@@ -124,13 +124,13 @@ export default function middleware(
       const authObj = await auth();
 
       if (
-        authObj.userId &&
-        !authObj.orgId &&
-        req.nextUrl.pathname.includes("/dashboard") &&
-        !req.nextUrl.pathname.endsWith("/organization-selection")
+        authObj.userId
+        && !authObj.orgId
+        && req.nextUrl.pathname.includes('/dashboard')
+        && !req.nextUrl.pathname.endsWith('/organization-selection')
       ) {
         const orgSelection = new URL(
-          "/onboarding/organization-selection",
+          '/onboarding/organization-selection',
           req.url,
         );
 
@@ -148,5 +148,5 @@ export default function middleware(
 }
 
 export const config = {
-  matcher: ["/((?!.+\.[\w]+$|_next|monitoring).*)", "/"], // Include API routes but exclude specific ones in isProtectedRoute
+  matcher: ['/((?!.+\.[\w]+$|_next|monitoring).*)', '/'], // Include API routes but exclude specific ones in isProtectedRoute
 };

@@ -9,7 +9,6 @@ let db: any;
 
 if (process.env.NODE_ENV === 'production') {
   // ✅ PRODUCTION: Force PostgreSQL Cloud only - NO FALLBACK
-  console.log('[DB] Production mode detected');
 
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is required in production environment');
@@ -20,44 +19,23 @@ if (process.env.NODE_ENV === 'production') {
     throw new Error('DATABASE_URL cannot be localhost in production. Use cloud PostgreSQL (Neon, Supabase, etc.)');
   }
 
-  // Log masked DATABASE_URL for debugging
-  const maskedUrl = process.env.DATABASE_URL.replace(/:([^:@]+)@/, ':***@');
-  console.log('[DB] Connecting to PostgreSQL Cloud:', maskedUrl);
-
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }, // Required for Neon/Render/Supabase
   });
-
-  // Test connection immediately
-  (async () => {
-    try {
-      console.log('[DB] Testing connection...');
-      await pool.query('SELECT 1');
-      console.log('[DB] ✅ Connected to Postgres Cloud');
-    } catch (error) {
-      console.error('[DB] ❌ Connection failed:', error);
-      throw new Error(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  })();
 
   db = drizzlePg(pool, { schema });
 
   // NO AUTO-MIGRATE in production - migrations must be run manually before deploy
 } else {
   // ✅ DEVELOPMENT/TEST: Force PGLite only
-  console.log('[DB] Development mode detected');
-  console.log('[DB] Using PGLite local database...');
 
   const client = new PGlite({ dataDir: './.local-db' });
   db = drizzlePGlite(client, { schema });
-  console.log('[DB] ✅ Using PGlite local');
 
   // Run PGLite migrations for development
   (async () => {
     try {
-      console.log('[DB] Running PGLite migrations...');
-
       // Create basic schema for PGLite - simplified to avoid errors
       const createSchemaSQL = `
         -- Create organizations table
@@ -77,7 +55,7 @@ if (process.env.NODE_ENV === 'production') {
           description TEXT,
           status TEXT NOT NULL DEFAULT 'PLANNING',
           budget TEXT,
-          start_date TIMESTAMP,
+          start_date TIMESTAMP NOT NULL,
           end_date TIMESTAMP,
           address TEXT,
           client_name TEXT,
@@ -88,6 +66,18 @@ if (process.env.NODE_ENV === 'production') {
           deleted_at TIMESTAMP
         );
 
+        -- Create project_members table
+        CREATE TABLE IF NOT EXISTS project_members (
+          id TEXT PRIMARY KEY,
+          project_id TEXT NOT NULL,
+          user_id TEXT NOT NULL,
+          role TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+          deleted_at TIMESTAMP,
+          UNIQUE(project_id, user_id, role)
+        );
+
         -- Insert default organization
         INSERT INTO organizations (id, name, slug) 
         VALUES ('org_sample_123', 'Sample Organization', 'sample-org')
@@ -95,9 +85,8 @@ if (process.env.NODE_ENV === 'production') {
       `;
 
       await client.exec(createSchemaSQL);
-      console.log('[DB] ✅ PGLite schema created successfully');
     } catch (error) {
-      console.warn('[DB] ⚠️ PGLite migration failed:', error);
+      // PGLite migration failed silently in development
     }
   })();
 }

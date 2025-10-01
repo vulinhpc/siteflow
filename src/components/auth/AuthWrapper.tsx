@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useAuth } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useAuth } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 type AuthWrapperProps = {
   children: React.ReactNode;
@@ -18,20 +18,20 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     const checkE2EBypass = () => {
       // Check for bypass header in URL or localStorage
       const urlParams = new URLSearchParams(window.location.search);
-      const bypass =
-        urlParams.get("e2e-bypass") || localStorage.getItem("e2e-bypass");
+      const bypass
+        = urlParams.get('e2e-bypass') || localStorage.getItem('e2e-bypass');
 
-      if (bypass === "true" || bypass === "1") {
+      if (bypass === 'true' || bypass === '1') {
         setIsE2EBypass(true);
         return;
       }
 
       // Check for bypass headers (if available in client)
-      if (typeof window !== "undefined") {
+      if (typeof window !== 'undefined') {
         // Try to detect if we're in E2E mode
-        const isE2E =
-          window.location.hostname === "localhost" &&
-          (window.location.port === "3000" || window.location.port === "3001");
+        const isE2E
+          = window.location.hostname === 'localhost'
+            && (window.location.port === '3000' || window.location.port === '3001');
 
         if (isE2E) {
           setIsE2EBypass(true);
@@ -61,7 +61,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
 
   // If not signed in, redirect to sign-in
   if (!isSignedIn) {
-    router.push("/sign-in");
+    router.push('/sign-in');
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">

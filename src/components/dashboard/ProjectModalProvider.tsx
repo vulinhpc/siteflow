@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
-import { CreateProjectModal } from "./CreateProjectModal";
+import { CreateProjectModal } from './CreateProjectModal';
 
 type ProjectModalProviderProps = {
   onProjectCreated?: () => void;
@@ -21,9 +21,9 @@ export function ProjectModalProvider({
       setIsModalOpen(true);
     };
 
-    window.addEventListener("openCreateProjectModal", handleOpenModal);
+    window.addEventListener('openCreateProjectModal', handleOpenModal);
     return () => {
-      window.removeEventListener("openCreateProjectModal", handleOpenModal);
+      window.removeEventListener('openCreateProjectModal', handleOpenModal);
     };
   }, []);
 
@@ -35,17 +35,17 @@ export function ProjectModalProvider({
     thumbnailUrl?: string;
   }) => {
     try {
-      const response = await fetch("/api/v1/projects", {
-        method: "POST",
+      const response = await fetch('/api/v1/projects', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to create project");
+        throw new Error(errorData.detail || 'Failed to create project');
       }
 
       await response.json();
@@ -54,7 +54,7 @@ export function ProjectModalProvider({
       // Trigger refresh callback
       onProjectCreated?.();
     } catch (error) {
-      console.error("Error creating project:", error);
+      console.error('Error creating project:', error);
       throw error;
     }
   };

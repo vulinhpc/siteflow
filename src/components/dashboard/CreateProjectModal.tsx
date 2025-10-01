@@ -1,12 +1,15 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { CalendarIcon, PlusIcon, TrashIcon, UserIcon } from 'lucide-react';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
-import { Button } from "@/components/ui/button";
-import { CloudinaryUpload } from "@/components/ui/cloudinary-upload";
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
+import { Combobox, type ComboboxOption } from '@/components/ui/combobox-simple';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +17,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -22,33 +25,49 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select-simple";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
+} from '@/components/ui/select-simple';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/components/ui/toast';
+import { cn } from '@/lib/utils';
+
+// Member schema for project assignment
+const memberSchema = z.object({
+  userId: z.string().min(1, 'User ID is required'),
+  role: z.enum([
+    'manager',
+    'engineer',
+    'accountant',
+    'safety_supervisor',
+    'design_engineer',
+  ], {
+    required_error: 'Role is required',
+  }),
+});
 
 // Zod schema matching API requirements
 const createProjectSchema = z
   .object({
     name: z
       .string()
-      .min(1, "Project name is required")
-      .max(255, "Project name must be at most 255 characters"),
+      .min(1, 'Project name is required')
+      .max(255, 'Project name must be at most 255 characters'),
     status: z.enum(
-      ["PLANNING", "IN_PROGRESS", "DONE", "ON_HOLD", "CANCELLED"],
+      ['PLANNING', 'IN_PROGRESS', 'DONE', 'ON_HOLD', 'CANCELLED'],
       {
-        required_error: "Project status is required",
+        required_error: 'Project status is required',
       },
     ),
     description: z.string().optional(),
-    startDate: z.string().min(1, "Start date is required"),
+    startDate: z.string().min(1, 'Start date is required'),
     endDate: z
       .string()
       .optional()
@@ -58,15 +77,13 @@ const createProjectSchema = z
         }
         const date = new Date(val);
         return !Number.isNaN(date.getTime());
-      }, "Invalid date format"),
-    managerIds: z.array(z.string()).optional(),
-    engineerIds: z.array(z.string()).optional(),
-    accountantIds: z.array(z.string()).optional(),
+      }, 'Invalid date format'),
+    members: z.array(memberSchema).optional(),
     thumbnailUrl: z
       .string()
-      .url("Invalid URL format")
+      .url('Invalid URL format')
       .optional()
-      .or(z.literal("")),
+      .or(z.literal('')),
   })
   .refine(
     (data) => {
@@ -79,12 +96,57 @@ const createProjectSchema = z
       return true;
     },
     {
-      message: "Start date must be before or equal to end date",
-      path: ["startDate"],
+      message: 'Start date must be before or equal to end date',
+      path: ['startDate'],
     },
   );
 
 type CreateProjectFormData = z.infer<typeof createProjectSchema>;
+
+// Hook to fetch organization users from API
+function useOrganizationUsers() {
+  const [users, setUsers] = React.useState<ComboboxOption[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    async function fetchUsers() {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/v1/clerk-members');
+        const data = await response.json();
+
+        if (data.ok) {
+          const userOptions: ComboboxOption[] = data.members.map((member: any) => ({
+            value: member.clerkUserId,
+            label: `${member.displayName || member.name || member.email} (${member.role})`,
+          }));
+          setUsers(userOptions);
+        } else {
+          console.error('Failed to fetch users:', data);
+          setUsers([]);
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        setUsers([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchUsers();
+  }, []);
+
+  return { users, loading };
+}
+
+// Role options with icons
+const roleOptions = [
+  { value: 'manager', label: 'Manager', icon: '👨‍💼' },
+  { value: 'engineer', label: 'Engineer', icon: '👨‍💻' },
+  { value: 'accountant', label: 'Accountant', icon: '👨‍💼' },
+  { value: 'safety_supervisor', label: 'Safety Supervisor', icon: '🛡️' },
+  { value: 'design_engineer', label: 'Design Engineer', icon: '🎨' },
+];
 
 type CreateProjectModalProps = {
   open: boolean;
@@ -100,21 +162,20 @@ export function CreateProjectModal({
   onProjectCreated,
 }: CreateProjectModalProps) {
   const { addToast } = useToast();
+  const { users: organizationUsers, loading: usersLoading } = useOrganizationUsers();
 
   const form = useForm<CreateProjectFormData>({
     resolver: zodResolver(createProjectSchema),
     defaultValues: {
-      name: "",
-      status: "PLANNING",
-      description: "",
-      startDate: "",
-      endDate: "",
-      managerIds: [],
-      engineerIds: [],
-      accountantIds: [],
-      thumbnailUrl: "",
+      name: '',
+      status: 'PLANNING',
+      description: '',
+      startDate: '',
+      endDate: '',
+      members: [],
+      thumbnailUrl: '',
     },
-    mode: "onChange",
+    mode: 'onChange',
   });
 
   const handleSubmit = async (data: CreateProjectFormData) => {
@@ -132,17 +193,17 @@ export function CreateProjectModal({
       onOpenChange(false);
       onProjectCreated?.();
       addToast({
-        type: "success",
-        title: "Project Created",
-        description: "Project has been created successfully!",
+        type: 'success',
+        title: 'Project Created',
+        description: 'Project has been created successfully!',
       });
     } catch (error) {
-      console.error("Form submit error:", error);
+      console.error('Form submit error:', error);
       addToast({
-        type: "error",
-        title: "Failed to Create Project",
+        type: 'error',
+        title: 'Failed to Create Project',
         description:
-          error instanceof Error ? error.message : "Failed to create project",
+          error instanceof Error ? error.message : 'Failed to create project',
       });
     }
   };
@@ -157,341 +218,393 @@ export function CreateProjectModal({
   const isFormValid =
     watchedValues.name && watchedValues.status && watchedValues.startDate;
 
+  // Add member function
+  const addMember = () => {
+    const currentMembers = form.getValues('members') || [];
+    form.setValue('members', [
+      ...currentMembers,
+      { userId: '', role: 'manager' as const },
+    ]);
+  };
+
+  // Remove member function
+  const removeMember = (index: number) => {
+    const currentMembers = form.getValues('members') || [];
+    const newMembers = currentMembers.filter((_, i) => i !== index);
+    form.setValue('members', newMembers);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="mx-4 max-h-[90vh] w-full max-w-2xl overflow-y-auto sm:mx-0"
+        className="mx-4 max-h-[90vh] w-full max-w-4xl overflow-y-auto sm:mx-0"
         role="dialog"
         aria-labelledby="create-project-title"
         aria-describedby="create-project-description"
       >
         <DialogHeader>
-          <DialogTitle id="create-project-title">Create Project</DialogTitle>
+          <DialogTitle id="create-project-title">Create New Project</DialogTitle>
           <DialogDescription id="create-project-description">
-            Create a new construction project to track progress and manage
-            resources.
+            Create a new construction project to track progress and manage resources.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-6"
+            className="space-y-8"
           >
-            {/* Project Name - Required */}
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="project-name">Project Name *</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="project-name"
-                      placeholder="Enter project name"
-                      {...field}
-                      className={
-                        form.formState.errors.name ? "border-destructive" : ""
-                      }
-                      aria-describedby={
-                        form.formState.errors.name
-                          ? "project-name-error"
-                          : undefined
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage id="project-name-error" />
-                </FormItem>
-              )}
-            />
+            {/* Basic Information Section */}
+            <section className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
+              
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                {/* Project Name */}
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel htmlFor="project-name">Project Name *</FormLabel>
+                      <FormControl>
+                        <Input
+                          id="project-name"
+                          placeholder="Enter project name"
+                          {...field}
+                          className={
+                            form.formState.errors.name ? 'border-destructive' : ''
+                          }
+                          aria-describedby={
+                            form.formState.errors.name
+                              ? 'project-name-error'
+                              : undefined
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage id="project-name-error" />
+                    </FormItem>
+                  )}
+                />
 
-            {/* Status - Required */}
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="project-status">Status *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger
-                        id="project-status"
-                        name="status"
-                        data-testid="project-status"
-                        className={
-                          form.formState.errors.status
-                            ? "border-destructive"
-                            : ""
-                        }
-                        aria-describedby={
-                          form.formState.errors.status
-                            ? "project-status-error"
-                            : undefined
-                        }
-                      >
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="PLANNING">Planning</SelectItem>
-                      <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                      <SelectItem value="DONE">Done</SelectItem>
-                      <SelectItem value="ON_HOLD">On Hold</SelectItem>
-                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage id="project-status-error" />
-                </FormItem>
-              )}
-            />
+                {/* Start Date */}
+                <FormField
+                  control={form.control}
+                  name="startDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="project-start-date">Start Date *</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              id="project-start-date"
+                              variant="outline"
+                              className={cn(
+                                'w-full justify-start text-left font-normal',
+                                !field.value && 'text-muted-foreground',
+                                form.formState.errors.startDate && 'border-destructive'
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {field.value ? (
+                                new Date(field.value).toLocaleDateString()
+                              ) : (
+                                'Select start date'
+                              )}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? new Date(field.value) : undefined}
+                            onSelect={(date: Date | undefined) => {
+                              if (date) {
+                                field.onChange(date.toISOString().split('T')[0]);
+                              }
+                            }}
+                            disabled={(date: Date) => date < new Date('1900-01-01')}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage id="project-start-date-error" />
+                    </FormItem>
+                  )}
+                />
 
-            {/* Start Date - Required */}
-            <FormField
-              control={form.control}
-              name="startDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="project-start-date">
-                    Start Date *
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      id="project-start-date"
-                      type="date"
-                      value={field.value ?? ""}
-                      onChange={field.onChange}
-                      className={
-                        form.formState.errors.startDate
-                          ? "border-destructive"
-                          : ""
-                      }
-                      aria-describedby={
-                        form.formState.errors.startDate
-                          ? "project-start-date-error"
-                          : undefined
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage id="project-start-date-error" />
-                </FormItem>
-              )}
-            />
+                {/* End Date */}
+                <FormField
+                  control={form.control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="project-end-date">End Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              id="project-end-date"
+                              variant="outline"
+                              className={cn(
+                                'w-full justify-start text-left font-normal',
+                                !field.value && 'text-muted-foreground',
+                                form.formState.errors.endDate && 'border-destructive'
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {field.value ? (
+                                new Date(field.value).toLocaleDateString()
+                              ) : (
+                                'Select end date'
+                              )}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? new Date(field.value) : undefined}
+                            onSelect={(date: Date | undefined) => {
+                              if (date) {
+                                field.onChange(date.toISOString().split('T')[0]);
+                              }
+                            }}
+                            disabled={(date: Date) => {
+                              const startDate = form.getValues('startDate');
+                              if (startDate) {
+                                return date < new Date(startDate);
+                              }
+                              return date < new Date('1900-01-01');
+                            }}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage id="project-end-date-error" />
+                    </FormItem>
+                  )}
+                />
 
-            {/* Description - Optional */}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="project-description">
-                    Description
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      id="project-description"
-                      name="description"
-                      placeholder="Enter project description"
-                      className="resize-none"
-                      rows={3}
-                      value={field.value ?? ""}
-                      onChange={field.onChange}
-                      aria-describedby={
-                        form.formState.errors.description
-                          ? "project-description-error"
-                          : undefined
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage id="project-description-error" />
-                </FormItem>
-              )}
-            />
+                {/* Status */}
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel htmlFor="project-status">Status *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger
+                            id="project-status"
+                            className={
+                              form.formState.errors.status
+                                ? 'border-destructive'
+                                : ''
+                            }
+                          >
+                            <SelectValue placeholder="Select project status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="PLANNING">Planning</SelectItem>
+                          <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                          <SelectItem value="DONE">Done</SelectItem>
+                          <SelectItem value="ON_HOLD">On Hold</SelectItem>
+                          <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage id="project-status-error" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </section>
 
-            {/* End Date - Optional */}
-            <FormField
-              control={form.control}
-              name="endDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="project-end-date">End Date</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="project-end-date"
-                      name="endDate"
-                      type="date"
-                      value={field.value ?? ""}
-                      onChange={field.onChange}
-                      className={
-                        form.formState.errors.endDate
-                          ? "border-destructive"
-                          : ""
-                      }
-                      aria-describedby={
-                        form.formState.errors.endDate
-                          ? "project-end-date-error"
-                          : undefined
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage id="project-end-date-error" />
-                </FormItem>
-              )}
-            />
+            {/* Details Section */}
+            <section className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900">Project Details</h3>
+              
+              <div className="space-y-6">
+                {/* Description */}
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="project-description">Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          id="project-description"
+                          placeholder="Enter project description"
+                          className="resize-none"
+                          rows={4}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            {/* Project Members - Optional */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-medium">Project Members</h4>
+                {/* Thumbnail Upload */}
+                <FormField
+                  control={form.control}
+                  name="thumbnailUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="project-thumbnail">Project Thumbnail</FormLabel>
+                      <FormControl>
+                        <div className="space-y-2">
+                          <CloudinaryUpload
+                            value={field.value ?? ''}
+                            onChange={field.onChange}
+                            onRemove={() => field.onChange('')}
+                            accept="image/*"
+                            maxSize={5}
+                            folder="projects"
+                            publicId={`project_${Date.now()}`}
+                            className={
+                              form.formState.errors.thumbnailUrl
+                                ? 'border-destructive'
+                                : ''
+                            }
+                            disabled={form.formState.isSubmitting}
+                          />
+                          <p className="text-sm text-muted-foreground">
+                            Recommended size: 1200x600px
+                          </p>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </section>
 
-              {/* Managers */}
+            {/* Team Assignment Section */}
+            <section className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Team Assignment</h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addMember}
+                  className="flex items-center gap-2"
+                >
+                  <PlusIcon className="h-4 w-4" />
+                  Add Member
+                </Button>
+              </div>
+
               <FormField
                 control={form.control}
-                name="managerIds"
+                name="members"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor="project-managers">Managers</FormLabel>
                     <FormControl>
-                      <Input
-                        id="project-managers"
-                        placeholder="Enter manager IDs (comma-separated)"
-                        value={field.value?.join(", ") ?? ""}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          const ids = value
-                            ? value
-                                .split(",")
-                                .map((id) => id.trim())
-                                .filter(Boolean)
-                            : [];
-                          field.onChange(ids);
-                        }}
-                        className={
-                          form.formState.errors.managerIds
-                            ? "border-destructive"
-                            : ""
-                        }
-                        aria-describedby={
-                          form.formState.errors.managerIds
-                            ? "project-managers-error"
-                            : undefined
-                        }
-                      />
+                      <div className="space-y-4">
+                        {field.value && field.value.length > 0 ? (
+                          <div className="overflow-hidden rounded-lg border">
+                            <table className="w-full">
+                              <thead className="bg-gray-50">
+                                <tr>
+                                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                                    User
+                                  </th>
+                                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                                    Role
+                                  </th>
+                                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                                    Action
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-200">
+                                {field.value.map((member, index) => (
+                                  <tr key={`member-${member.userId}-${index}`}>
+                                    <td className="px-4 py-3">
+                                      <Combobox
+                                        options={organizationUsers}
+                                        value={member.userId}
+                                        onValueChange={(value) => {
+                                          const newMembers = [...(field.value || [])];
+                                          newMembers[index] = {
+                                            ...newMembers[index],
+                                            userId: value,
+                                            role: newMembers[index]?.role || 'manager',
+                                          };
+                                          field.onChange(newMembers);
+                                        }}
+                                        placeholder="Select user"
+                                        disabled={usersLoading}
+                                        className="w-full"
+                                      />
+                                    </td>
+                                    <td className="px-4 py-3">
+                                      <Select
+                                        value={member.role}
+                                        onValueChange={(value) => {
+                                          const newMembers = [...(field.value || [])];
+                                          newMembers[index] = {
+                                            ...newMembers[index],
+                                            userId: newMembers[index]?.userId || '',
+                                            role: value as any,
+                                          };
+                                          field.onChange(newMembers);
+                                        }}
+                                      >
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {roleOptions.map((role) => (
+                                            <SelectItem key={role.value} value={role.value}>
+                                              <div className="flex items-center gap-2">
+                                                <span>{role.icon}</span>
+                                                <span>{role.label}</span>
+                                              </div>
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </td>
+                                    <td className="px-4 py-3 text-right">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => removeMember(index)}
+                                        className="text-red-500 hover:text-red-700"
+                                      >
+                                        <TrashIcon className="h-4 w-4" />
+                                      </Button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
+                            <UserIcon className="mx-auto h-12 w-12 text-gray-400" />
+                            <h4 className="mt-2 text-sm font-medium text-gray-900">
+                              No team members assigned
+                            </h4>
+                            <p className="mt-1 text-sm text-gray-500">
+                              Click "Add Member" to assign team members to this project.
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
-                    <FormMessage id="project-managers-error" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
-
-              {/* Engineers */}
-              <FormField
-                control={form.control}
-                name="engineerIds"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="project-engineers">Engineers</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="project-engineers"
-                        placeholder="Enter engineer IDs (comma-separated)"
-                        value={field.value?.join(", ") ?? ""}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          const ids = value
-                            ? value
-                                .split(",")
-                                .map((id) => id.trim())
-                                .filter(Boolean)
-                            : [];
-                          field.onChange(ids);
-                        }}
-                        className={
-                          form.formState.errors.engineerIds
-                            ? "border-destructive"
-                            : ""
-                        }
-                        aria-describedby={
-                          form.formState.errors.engineerIds
-                            ? "project-engineers-error"
-                            : undefined
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage id="project-engineers-error" />
-                  </FormItem>
-                )}
-              />
-
-              {/* Accountants */}
-              <FormField
-                control={form.control}
-                name="accountantIds"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="project-accountants">
-                      Accountants
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        id="project-accountants"
-                        placeholder="Enter accountant IDs (comma-separated)"
-                        value={field.value?.join(", ") ?? ""}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          const ids = value
-                            ? value
-                                .split(",")
-                                .map((id) => id.trim())
-                                .filter(Boolean)
-                            : [];
-                          field.onChange(ids);
-                        }}
-                        className={
-                          form.formState.errors.accountantIds
-                            ? "border-destructive"
-                            : ""
-                        }
-                        aria-describedby={
-                          form.formState.errors.accountantIds
-                            ? "project-accountants-error"
-                            : undefined
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage id="project-accountants-error" />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Thumbnail Upload - Optional */}
-            <FormField
-              control={form.control}
-              name="thumbnailUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="project-thumbnail">
-                    Project Thumbnail
-                  </FormLabel>
-                  <FormControl>
-                    <CloudinaryUpload
-                      value={field.value ?? ""}
-                      onChange={field.onChange}
-                      onRemove={() => field.onChange("")}
-                      accept="image/*"
-                      maxSize={5}
-                      folder="projects"
-                      publicId={`project_${Date.now()}`}
-                      className={
-                        form.formState.errors.thumbnailUrl
-                          ? "border-destructive"
-                          : ""
-                      }
-                      disabled={form.formState.isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage id="project-thumbnail-error" />
-                </FormItem>
-              )}
-            />
+            </section>
 
             <DialogFooter className="flex flex-col gap-2 sm:flex-row">
               <Button
@@ -500,8 +613,6 @@ export function CreateProjectModal({
                 onClick={handleCancel}
                 disabled={form.formState.isSubmitting}
                 className="w-full sm:w-auto"
-                role="button"
-                data-testid="cancel-button"
               >
                 Cancel
               </Button>
@@ -509,16 +620,14 @@ export function CreateProjectModal({
                 type="submit"
                 disabled={!isFormValid || form.formState.isSubmitting}
                 className="w-full sm:w-auto"
-                role="button"
-                data-testid="submit-button"
               >
                 {form.formState.isSubmitting ? (
                   <>
-                    <div className="mr-2 size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    Saving...
+                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Creating...
                   </>
                 ) : (
-                  "Save"
+                  'Create Project'
                 )}
               </Button>
             </DialogFooter>

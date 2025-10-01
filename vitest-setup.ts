@@ -31,9 +31,9 @@ vi.mock('@/db', () => ({
 vi.mock('drizzle-orm', () => ({
   and: vi.fn((...args) => args),
   count: vi.fn(() => 'count'),
-  desc: vi.fn((field) => ({ field, direction: 'desc' })),
+  desc: vi.fn(field => ({ field, direction: 'desc' })),
   eq: vi.fn((field, value) => ({ field, value, operator: 'eq' })),
-  isNull: vi.fn((field) => ({ field, operator: 'isNull' })),
+  isNull: vi.fn(field => ({ field, operator: 'isNull' })),
 }));
 
 // Mock schema

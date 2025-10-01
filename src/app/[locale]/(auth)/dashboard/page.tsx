@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from '@tanstack/react-query';
 import {
   Building2,
   Calendar,
   DollarSign,
   TrendingUp,
   Users,
-} from "lucide-react";
-import React from "react";
+} from 'lucide-react';
+import React from 'react';
 
-import { KPICard } from "@/components/admin/kpi-card";
-import { PaginatedTable } from "@/components/admin/paginated-table";
-import { CreateProjectModal } from "@/components/dashboard/CreateProjectModal";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { KPICard } from '@/components/admin/kpi-card';
+import { PaginatedTable } from '@/components/admin/paginated-table';
+import { CreateProjectModal } from '@/components/dashboard/CreateProjectModal';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Pagination,
   PaginationContent,
@@ -24,8 +24,8 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
-import { SafeImage } from "@/components/ui/safe-image";
+} from '@/components/ui/pagination';
+import { SafeImage } from '@/components/ui/safe-image';
 
 // Project type definition
 type Project = {
@@ -52,8 +52,8 @@ type Project = {
 
 const projectColumns = [
   {
-    key: "thumbnailUrl" as const,
-    label: "Thumbnail",
+    key: 'thumbnailUrl' as const,
+    label: 'Thumbnail',
     render: (value: string) => (
       <div className="h-12 w-16 overflow-hidden rounded-lg border">
         <SafeImage
@@ -67,75 +67,75 @@ const projectColumns = [
     ),
   },
   {
-    key: "name" as const,
-    label: "Project Name",
+    key: 'name' as const,
+    label: 'Project Name',
     sortable: true,
   },
   {
-    key: "status" as const,
-    label: "Status",
+    key: 'status' as const,
+    label: 'Status',
     render: (value: string) => (
       <span
         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-          value === "COMPLETED"
-            ? "bg-green-100 text-green-800"
-            : value === "IN_PROGRESS"
-              ? "bg-blue-100 text-blue-800"
-              : "bg-yellow-100 text-yellow-800"
+          value === 'COMPLETED'
+            ? 'bg-green-100 text-green-800'
+            : value === 'IN_PROGRESS'
+              ? 'bg-blue-100 text-blue-800'
+              : 'bg-yellow-100 text-yellow-800'
         }`}
       >
-        {value === "PLANNING"
-          ? "Planning"
-          : value === "IN_PROGRESS"
-            ? "In Progress"
-            : value === "COMPLETED"
-              ? "Completed"
+        {value === 'PLANNING'
+          ? 'Planning'
+          : value === 'IN_PROGRESS'
+            ? 'In Progress'
+            : value === 'COMPLETED'
+              ? 'Completed'
               : value}
       </span>
     ),
   },
   {
-    key: "managerName" as const,
-    label: "Manager",
+    key: 'managerName' as const,
+    label: 'Manager',
     render: (_value: string, project: Project) => (
       <div className="flex items-center space-x-2">
         <Avatar className="size-6">
           <AvatarImage src={project.managerAvatar} />
           <AvatarFallback className="text-xs">
-            {project.managerName?.charAt(0) || "M"}
+            {project.managerName?.charAt(0) || 'M'}
           </AvatarFallback>
         </Avatar>
         <span className="text-sm font-medium">
-          {project.managerName || "Unassigned"}
+          {project.managerName || 'Unassigned'}
         </span>
       </div>
     ),
   },
   {
-    key: "budget" as const,
-    label: "Budget",
+    key: 'budget' as const,
+    label: 'Budget',
     render: (value: string) => (
       <span className="font-mono">
         {value
-          ? new Intl.NumberFormat("vi-VN", {
-              style: "currency",
-              currency: "VND",
+          ? new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
             }).format(Number(value))
-          : "N/A"}
+          : 'N/A'}
       </span>
     ),
   },
   {
-    key: "startDate" as const,
-    label: "Start Date",
+    key: 'startDate' as const,
+    label: 'Start Date',
     render: (value: string) =>
-      value ? new Date(value).toLocaleDateString("vi-VN") : "N/A",
+      value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A',
   },
   {
-    key: "endDate" as const,
-    label: "End Date",
+    key: 'endDate' as const,
+    label: 'End Date',
     render: (value: string) =>
-      value ? new Date(value).toLocaleDateString("vi-VN") : "N/A",
+      value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A',
   },
 ];
 
@@ -147,20 +147,20 @@ function useProjects(page: number = 1) {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["projects", page],
+    queryKey: ['projects', page],
     queryFn: async () => {
       const url = `/api/v1/projects?page=${page}&limit=10`;
 
       const response = await fetch(url, {
         headers: {
-          "x-e2e-bypass": "true",
-          "x-org-id": "org_e2e_default",
-          "x-user-id": "test-user",
+          'x-e2e-bypass': 'true',
+          'x-org-id': 'org_e2e_default',
+          'x-user-id': 'test-user',
         },
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch projects");
+        throw new Error('Failed to fetch projects');
       }
 
       const data = await response.json();
@@ -184,8 +184,8 @@ function useProjects(page: number = 1) {
 const DashboardIndexPage = () => {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const { projects, total, page, totalPages, loading, error, refetch } =
-    useProjects(currentPage);
+  const { projects, total, page, totalPages, loading, error, refetch }
+    = useProjects(currentPage);
 
   // Handle page change
   const handlePageChange = (newPage: number) => {
@@ -212,26 +212,26 @@ const DashboardIndexPage = () => {
     thumbnailUrl?: string;
   }) => {
     try {
-      const response = await fetch("/api/v1/projects", {
-        method: "POST",
+      const response = await fetch('/api/v1/projects', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "x-e2e-bypass": "true",
-          "x-org-id": "org_sample_123",
-          "x-user-id": "user_test_123",
+          'Content-Type': 'application/json',
+          'x-e2e-bypass': 'true',
+          'x-org-id': 'org_sample_123',
+          'x-user-id': 'user_test_123',
         },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to create project");
+        throw new Error(errorData.detail || 'Failed to create project');
       }
 
       await response.json();
       handleRefresh();
     } catch (error) {
-      console.error("Error creating project:", error);
+      console.error('Error creating project:', error);
       throw error;
     }
   };
@@ -270,59 +270,59 @@ const DashboardIndexPage = () => {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <KPICard
           title="Total Projects"
-          value={loading ? "..." : total}
+          value={loading ? '...' : total}
           description="Active construction projects"
           icon={Building2}
-          trend={{ value: 12, label: "from last month" }}
+          trend={{ value: 12, label: 'from last month' }}
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
         <KPICard
           title="Total Budget"
           value={
             loading
-              ? "..."
+              ? '...'
               : projects
                   .reduce((total: number, project: Project) => {
                     const budget = project.budget ? Number(project.budget) : 0;
                     return total + budget;
                   }, 0)
-                  .toLocaleString("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                    notation: "compact",
+                  .toLocaleString('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                    notation: 'compact',
                     maximumFractionDigits: 1,
                   })
           }
           description="Current page project budgets"
           icon={DollarSign}
-          trend={{ value: 8, label: "from last month" }}
+          trend={{ value: 8, label: 'from last month' }}
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
         <KPICard
           title="Active Projects"
           value={
             loading
-              ? "..."
-              : projects.filter((p: Project) => p.status === "IN_PROGRESS")
+              ? '...'
+              : projects.filter((p: Project) => p.status === 'IN_PROGRESS')
                   .length
           }
           description="Current page active projects"
           icon={Calendar}
-          trend={{ value: -3, label: "from last week" }}
+          trend={{ value: -3, label: 'from last week' }}
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
         <KPICard
           title="Team Members"
           value={
             loading
-              ? "..."
+              ? '...'
               : new Set(
                   projects.map((p: Project) => p.managerId).filter(Boolean),
                 ).size
           }
           description="Current page managers"
           icon={Users}
-          trend={{ value: 2, label: "new this month" }}
+          trend={{ value: 2, label: 'new this month' }}
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
       </div>
@@ -395,12 +395,11 @@ const DashboardIndexPage = () => {
                       <PaginationItem>
                         <PaginationPrevious
                           onClick={() =>
-                            handlePageChange(Math.max(1, page - 1))
-                          }
+                            handlePageChange(Math.max(1, page - 1))}
                           className={
                             page === 1
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
+                              ? 'pointer-events-none opacity-50'
+                              : 'cursor-pointer'
                           }
                         />
                       </PaginationItem>
@@ -455,12 +454,11 @@ const DashboardIndexPage = () => {
                       <PaginationItem>
                         <PaginationNext
                           onClick={() =>
-                            handlePageChange(Math.min(totalPages, page + 1))
-                          }
+                            handlePageChange(Math.min(totalPages, page + 1))}
                           className={
                             page === totalPages
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
+                              ? 'pointer-events-none opacity-50'
+                              : 'cursor-pointer'
                           }
                         />
                       </PaginationItem>
@@ -471,8 +469,22 @@ const DashboardIndexPage = () => {
 
               {/* Show current page info */}
               <div className="text-center text-sm text-muted-foreground">
-                Showing {projects.length} of {total} projects (Page {page} of{" "}
-                {totalPages})
+                Showing
+{' '}
+{projects.length}
+{' '}
+of
+{' '}
+{total}
+{' '}
+projects (Page
+{' '}
+{page}
+{' '}
+of
+{' '}
+                {totalPages}
+)
               </div>
             </div>
           )}
@@ -569,8 +581,9 @@ const DashboardIndexPage = () => {
               <div className="h-2 w-full rounded-full bg-gray-200">
                 <div
                   className="h-2 rounded-full bg-green-500"
-                  style={{ width: "36%" }}
-                ></div>
+                  style={{ width: '36%' }}
+                >
+                </div>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 36% budget remaining

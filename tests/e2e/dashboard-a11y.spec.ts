@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { expect, test } from '@playwright/test';
 
 test.describe('Dashboard Accessibility Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -23,7 +23,7 @@ test.describe('Dashboard Accessibility Tests', () => {
 
     // Check for serious and critical violations
     const seriousViolations = accessibilityScanResults.violations.filter(
-      violation => violation.impact === 'serious' || violation.impact === 'critical'
+      violation => violation.impact === 'serious' || violation.impact === 'critical',
     );
 
     expect(seriousViolations).toHaveLength(0);
@@ -47,7 +47,7 @@ test.describe('Dashboard Accessibility Tests', () => {
 
     // Check for serious and critical violations
     const seriousViolations = accessibilityScanResults.violations.filter(
-      violation => violation.impact === 'serious' || violation.impact === 'critical'
+      violation => violation.impact === 'serious' || violation.impact === 'critical',
     );
 
     expect(seriousViolations).toHaveLength(0);
@@ -66,23 +66,26 @@ test.describe('Dashboard Accessibility Tests', () => {
 
     // Check if focus is visible
     const focusedElement = await page.evaluate(() => document.activeElement);
+
     expect(focusedElement).not.toBeNull();
 
     // Test Enter key on create project button
     await page.keyboard.press('Enter');
+
     await expect(page.locator('[data-testid="create-project-modal"]')).toBeVisible();
   });
 
   test('should have proper ARIA labels and roles', async ({ page }) => {
     // Check for proper ARIA labels
     await expect(page.locator('[aria-label]')).toHaveCount({ min: 1 });
-    
+
     // Check for proper roles
     await expect(page.locator('[role="button"]')).toHaveCount({ min: 1 });
     await expect(page.locator('[role="dialog"]')).toHaveCount({ min: 0 }); // Modal not open yet
 
     // Open modal and check dialog role
     await page.click('[data-testid="create-project-button"]');
+
     await expect(page.locator('[role="dialog"]')).toHaveCount({ min: 1 });
   });
 
@@ -94,7 +97,7 @@ test.describe('Dashboard Accessibility Tests', () => {
 
     // Check for color contrast violations
     const colorContrastViolations = accessibilityScanResults.violations.filter(
-      violation => violation.ruleId === 'color-contrast'
+      violation => violation.ruleId === 'color-contrast',
     );
 
     expect(colorContrastViolations).toHaveLength(0);
@@ -111,7 +114,7 @@ test.describe('Dashboard Accessibility Tests', () => {
 
     // Check for serious and critical violations
     const seriousViolations = accessibilityScanResults.violations.filter(
-      violation => violation.impact === 'serious' || violation.impact === 'critical'
+      violation => violation.impact === 'serious' || violation.impact === 'critical',
     );
 
     expect(seriousViolations).toHaveLength(0);
@@ -124,7 +127,7 @@ test.describe('Dashboard Accessibility Tests', () => {
 
     // Check for proper form labels
     await expect(page.locator('label[for]')).toHaveCount({ min: 1 });
-    
+
     // Check for proper input associations
     const inputs = await page.locator('input, select, textarea').all();
     for (const input of inputs) {
@@ -138,7 +141,7 @@ test.describe('Dashboard Accessibility Tests', () => {
     const nameInput = page.locator('input[name="name"]');
     await nameInput.fill('A'); // Trigger validation
     await page.click('[data-testid="submit-button"]');
-    
+
     // Check if error message is properly associated
     await expect(page.locator('text=Project name required')).toBeVisible();
   });

@@ -32,11 +32,11 @@ async function migrateVercel() {
 
     if (tableCheck.rows[0].exists) {
       console.log('ℹ️ Projects table already exists, checking data...');
-      
+
       // Check if we have data
       const countResult = await client.query('SELECT COUNT(*) FROM projects');
-      const projectCount = parseInt(countResult.rows[0].count);
-      
+      const projectCount = Number.parseInt(countResult.rows[0].count);
+
       if (projectCount > 0) {
         console.log(`✅ Database already has ${projectCount} projects, migration not needed`);
         return;

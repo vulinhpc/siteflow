@@ -703,27 +703,27 @@ Response: [
 const createProjectSchema = z.object({
   name: z
     .string()
-    .min(3, "Project name must be at least 3 characters")
+    .min(3, 'Project name must be at least 3 characters')
     .max(255),
   description: z.string().optional(),
   budget: z
     .string()
     .optional()
     .transform((val) => {
-      if (!val || val === "") {
+      if (!val || val === '') {
         return null;
       }
       const num = Number.parseFloat(val);
       return Number.isNaN(num) ? null : num;
     }),
   status: z
-    .enum(["PLANNING", "IN_PROGRESS", "ON_HOLD", "COMPLETED", "CANCELLED"])
-    .default("PLANNING"),
+    .enum(['PLANNING', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'])
+    .default('PLANNING'),
   startDate: z
     .string()
     .optional()
     .transform((val) => {
-      if (!val || val === "") {
+      if (!val || val === '') {
         return null;
       }
       try {
@@ -736,7 +736,7 @@ const createProjectSchema = z.object({
     .string()
     .optional()
     .transform((val) => {
-      if (!val || val === "") {
+      if (!val || val === '') {
         return null;
       }
       try {
@@ -759,14 +759,14 @@ const createProjectSchema = z.object({
 ```typescript
 // FE Schema (src/components/admin/create-project-modal.tsx)
 const createProjectSchema = z.object({
-  name: z.string().min(3, "Project name must be at least 3 characters"),
+  name: z.string().min(3, 'Project name must be at least 3 characters'),
   description: z.string().optional(),
-  budget: z.coerce.number().min(1, "Budget must be greater than 0").optional(),
+  budget: z.coerce.number().min(1, 'Budget must be greater than 0').optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   status: z
-    .enum(["PLANNING", "IN_PROGRESS", "ON_HOLD", "COMPLETED", "CANCELLED"])
-    .default("PLANNING"),
+    .enum(['PLANNING', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'])
+    .default('PLANNING'),
   managerId: z.string().optional(),
   thumbnailUrl: z.string().url().optional(),
 });
@@ -891,10 +891,10 @@ Response: {
 // API GET /api/v1/projects (src/app/api/v1/projects/route.ts)
 export async function GET(req: NextRequest) {
   const limit = Math.min(
-    Number.parseInt(url.searchParams.get("limit") || "10"),
+    Number.parseInt(url.searchParams.get('limit') || '10'),
     100,
   );
-  const cursor = url.searchParams.get("cursor");
+  const cursor = url.searchParams.get('cursor');
 
   // Parse cursor for pagination
   const cursorData = parseCursor(cursor);
@@ -923,8 +923,8 @@ export async function GET(req: NextRequest) {
   const items = hasMore ? projects.slice(0, limit) : projects;
 
   // Create next cursor
-  const nextCursor =
-    hasMore && items.length > 0
+  const nextCursor
+    = hasMore && items.length > 0
       ? createCursor(
           items[items.length - 1].createdAt,
           items[items.length - 1].id,
@@ -1074,11 +1074,11 @@ Response: { "items": [...4 items...], "nextCursor": null, "hasMore": false }
 // API GET /api/v1/projects (src/app/api/v1/projects/route.ts)
 export async function GET(req: NextRequest) {
   const limit = Math.min(
-    Number.parseInt(url.searchParams.get("limit") || "10"),
+    Number.parseInt(url.searchParams.get('limit') || '10'),
     100,
   );
   const page = Math.max(
-    Number.parseInt(url.searchParams.get("page") || "1"),
+    Number.parseInt(url.searchParams.get('page') || '1'),
     1,
   );
   const offset = (page - 1) * limit;
@@ -1425,12 +1425,12 @@ Response: { "items": [...4 items...], "total": 84, "page": 9, "totalPages": 9 }
 // Zod Schema (src/components/admin/create-project-modal.tsx)
 const createProjectSchema = z
   .object({
-    name: z.string().min(3, "Project name required"),
+    name: z.string().min(3, 'Project name required'),
     description: z.string().optional(),
     budget: z.coerce.number().optional(),
     startDate: z.string().optional(),
     endDate: z.string().optional(),
-    status: z.enum(["PLANNING", "IN_PROGRESS", "DONE"]).default("PLANNING"),
+    status: z.enum(['PLANNING', 'IN_PROGRESS', 'DONE']).default('PLANNING'),
     managerId: z.string().optional(),
     thumbnailUrl: z.string().optional(),
   })
@@ -1442,8 +1442,8 @@ const createProjectSchema = z
       return true;
     },
     {
-      message: "Start date must be before or equal to end date",
-      path: ["endDate"],
+      message: 'Start date must be before or equal to end date',
+      path: ['endDate'],
     },
   );
 ```
@@ -1455,27 +1455,27 @@ const createProjectSchema = z
 const createProjectSchema = z.object({
   name: z
     .string()
-    .min(3, "Project name must be at least 3 characters")
+    .min(3, 'Project name must be at least 3 characters')
     .max(255),
   description: z.string().optional(),
   budget: z
     .union([z.string(), z.number()])
     .optional()
     .transform((val) => {
-      if (!val || val === "") {
+      if (!val || val === '') {
         return null;
       }
-      const num = typeof val === "number" ? val : Number.parseFloat(val);
+      const num = typeof val === 'number' ? val : Number.parseFloat(val);
       return Number.isNaN(num) ? null : num;
     }),
   status: z
-    .enum(["PLANNING", "IN_PROGRESS", "ON_HOLD", "COMPLETED", "CANCELLED"])
-    .default("PLANNING"),
+    .enum(['PLANNING', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'])
+    .default('PLANNING'),
   startDate: z
     .string()
     .optional()
     .transform((val) => {
-      if (!val || val === "") {
+      if (!val || val === '') {
         return null;
       }
       try {
@@ -1488,7 +1488,7 @@ const createProjectSchema = z.object({
     .string()
     .optional()
     .transform((val) => {
-      if (!val || val === "") {
+      if (!val || val === '') {
         return null;
       }
       try {
@@ -2015,19 +2015,19 @@ git push origin fix/4a1-upload-gallery-create-project
 #### 3. **Tách biệt rõ ràng Dev vs Prod** ✅
 
 ```typescript
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === 'production') {
   // ✅ PRODUCTION: Force PostgreSQL Cloud only - NO FALLBACK
   if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL is required in production environment");
+    throw new Error('DATABASE_URL is required in production environment');
   }
 
   // Validate DATABASE_URL is not localhost
   if (
-    process.env.DATABASE_URL.includes("127.0.0.1") ||
-    process.env.DATABASE_URL.includes("localhost")
+    process.env.DATABASE_URL.includes('127.0.0.1')
+    || process.env.DATABASE_URL.includes('localhost')
   ) {
     throw new Error(
-      "DATABASE_URL cannot be localhost in production. Use cloud PostgreSQL (Neon, Supabase, etc.)",
+      'DATABASE_URL cannot be localhost in production. Use cloud PostgreSQL (Neon, Supabase, etc.)',
     );
   }
 
