@@ -219,7 +219,22 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const body = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (error) {
+      console.error('JSON parsing error:', error);
+      return new Response(JSON.stringify({
+        type: 'https://example.com/probs/invalid-json',
+        title: 'Invalid JSON',
+        status: 400,
+        detail: 'Request body must be valid JSON',
+        instance: req.url,
+      }), {
+        status: 400,
+        headers: { 'content-type': 'application/problem+json' },
+      });
+    }
 
     // Validate request body
     const validationResult = createProjectSchema.safeParse(body);
