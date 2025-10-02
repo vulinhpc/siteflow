@@ -103,6 +103,7 @@ export function AdminSidebar({
           size="icon"
           onClick={onToggleCollapse}
           className="size-8"
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isCollapsed ? (
             <ChevronRight className="size-4" />
