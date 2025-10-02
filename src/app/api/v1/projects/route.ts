@@ -1,86 +1,56 @@
-import { and, count, desc, eq, isNull } from 'drizzle-orm';
-import type { NextRequest } from 'next/server';
-import { z } from 'zod';
+import { and, count, desc, eq, isNull } from "drizzle-orm";
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 
-import { projectMembersSchema, projectsSchema } from '@/models/Schema';
+import { projectsSchema } from "@/models/Schema";
 
 // Lazy load database to avoid connection during build time
 async function getDb() {
-  const { db } = await import('@/db');
+  const { db } = await import("@/db");
   return db;
 }
 
-// Member schema for project assignment
-const memberSchema = z.object({
-  userId: z.string().min(1, 'User ID is required'),
-  role: z.enum([
-    'manager',
-    'engineer',
-    'accountant',
-    'safety_supervisor',
-    'design_engineer',
-  ], {
-    required_error: 'Role is required',
-  }),
-});
+// Member schema for project assignment (removed - not used in canonical API)
 
-// Validation schemas
+// Canonical validation schema
 const createProjectSchema = z
   .object({
-    name: z
-      .string()
-      .min(3, 'Project name must be at least 3 characters')
-      .max(255),
-    description: z.string().optional(),
-    budget: z
-      .union([z.string(), z.number()])
-      .optional()
-      .transform((val) => {
-        if (!val || val === '') {
-          return null;
-        }
-        const num = typeof val === 'number' ? val : Number.parseFloat(val);
-        return Number.isNaN(num) ? null : num;
-      }),
+    name: z.string().min(1, "Project name is required").max(255),
     status: z
-      .enum(['PLANNING', 'IN_PROGRESS', 'DONE', 'ON_HOLD', 'CANCELLED'])
-      .default('PLANNING'),
-    startDate: z
+      .enum(["planning", "in_progress", "on_hold", "completed"])
+      .default("planning"),
+    start_date: z
       .string()
-      .date('Start date is required and must be a valid date'),
-    endDate: z
-      .string()
-      .optional()
-      .transform((val) => {
-        if (!val || val === '') {
-          return null;
-        }
-        try {
-          return new Date(val).toISOString();
-        } catch {
-          return null;
-        }
-      }),
-    members: z.array(memberSchema).optional(),
-    thumbnailUrl: z.string().optional(),
-    // Legacy fields for backward compatibility
+      .date("Start date is required and must be a valid date"),
+    end_date: z.string().date("End date must be a valid date").optional(),
+    budget_total: z.number().min(0, "Budget must be non-negative").optional(),
+    currency: z.string().default("VND"),
     address: z.string().optional(),
-    clientName: z.string().optional(),
-    clientContact: z.string().optional(),
+    scale: z
+      .object({
+        area_m2: z.number().optional(),
+        floors: z.number().optional(),
+        notes: z.string().optional(),
+      })
+      .optional(),
+    investor_name: z.string().optional(),
+    investor_phone: z.string().optional(),
+    description: z.string().optional(),
+    thumbnail_url: z.string().url("Thumbnail URL must be valid").optional(),
   })
   .refine(
     (data) => {
-      // Ensure startDate is before or equal to endDate if both are provided
-      if (data.startDate && data.endDate) {
-        const start = new Date(data.startDate);
-        const end = new Date(data.endDate);
+      // Ensure start_date is before or equal to end_date if both are provided
+      if (data.start_date && data.end_date) {
+        const start = new Date(data.start_date);
+        const end = new Date(data.end_date);
         return start <= end;
       }
       return true;
     },
     {
-      message: 'Start date must be before or equal to end date',
-      path: ['startDate'],
+      message: "Start date must be before or equal to end date",
+      path: ["start_date"],
     },
   );
 
@@ -89,35 +59,35 @@ const createProjectSchema = z
 // GET /api/v1/projects
 export async function GET(req: NextRequest) {
   try {
-    const isE2E = req.headers.get('x-e2e-bypass') === 'true';
-    const orgId = req.headers.get('x-org-id') || 'org_sample_123';
+    const isE2E = req.headers.get("x-e2e-bypass") === "true";
+    const orgId = req.headers.get("x-org-id") || "org_sample_123";
 
     if (!isE2E && !orgId) {
       return new Response(
         JSON.stringify({
-          type: 'https://example.com/probs/validation-error',
-          title: 'Validation Error',
+          type: "https://siteflow.app/errors/validation-error",
+          title: "Validation Error",
           status: 400,
-          detail: 'Organization ID is required',
+          detail: "Organization ID is required",
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { 'content-type': 'application/problem+json' },
+          headers: { "content-type": "application/problem+json" },
         },
       );
     }
 
     const url = new URL(req.url);
     const limit = Math.min(
-      Number.parseInt(url.searchParams.get('limit') || '10'),
+      Number.parseInt(url.searchParams.get("limit") || "10"),
       100,
     );
     const page = Math.max(
-      Number.parseInt(url.searchParams.get('page') || '1'),
+      Number.parseInt(url.searchParams.get("page") || "1"),
       1,
     );
-    const q = url.searchParams.get('q') || '';
+    const q = url.searchParams.get("q") || "";
 
     // Calculate offset for pagination
     const offset = (page - 1) * limit;
@@ -141,27 +111,27 @@ export async function GET(req: NextRequest) {
       total = totalCountResult[0]?.count || 0;
       // Total projects count retrieved
     } catch (error) {
-      console.error('Error fetching projects count:', error);
+      console.error("Error fetching projects count:", error);
       return new Response(
         JSON.stringify({
-          type: 'https://example.com/probs/database-error',
-          title: 'Database Error',
+          type: "https://siteflow.app/errors/database-error",
+          title: "Database Error",
           status: 500,
-          detail: 'Failed to fetch projects count',
+          detail: "Failed to fetch projects count",
           instance: req.url,
           errors: [
             {
-              field: 'database',
+              field: "database",
               message:
                 error instanceof Error
                   ? error.message
-                  : 'Unknown database error',
+                  : "Unknown database error",
             },
           ],
         }),
         {
           status: 500,
-          headers: { 'content-type': 'application/problem+json' },
+          headers: { "content-type": "application/problem+json" },
         },
       );
     }
@@ -181,27 +151,27 @@ export async function GET(req: NextRequest) {
         .offset(offset);
       // Projects fetched successfully
     } catch (error) {
-      console.error('Error fetching projects:', error);
+      console.error("Error fetching projects:", error);
       return new Response(
         JSON.stringify({
-          type: 'https://example.com/probs/database-error',
-          title: 'Database Error',
+          type: "https://siteflow.app/errors/database-error",
+          title: "Database Error",
           status: 500,
-          detail: 'Failed to fetch projects',
+          detail: "Failed to fetch projects",
           instance: req.url,
           errors: [
             {
-              field: 'database',
+              field: "database",
               message:
                 error instanceof Error
                   ? error.message
-                  : 'Unknown database error',
+                  : "Unknown database error",
             },
           ],
         }),
         {
           status: 500,
-          headers: { 'content-type': 'application/problem+json' },
+          headers: { "content-type": "application/problem+json" },
         },
       );
     }
@@ -210,30 +180,30 @@ export async function GET(req: NextRequest) {
     const filteredItems = q
       ? projects.filter(
           (p: any) =>
-            p.name.toLowerCase().includes(q.toLowerCase())
-            || (p.description
-              && p.description.toLowerCase().includes(q.toLowerCase())),
+            p.name.toLowerCase().includes(q.toLowerCase()) ||
+            (p.description &&
+              p.description.toLowerCase().includes(q.toLowerCase())),
         )
       : projects;
 
-    // Format response
+    // Format response with canonical fields
     const formattedItems = filteredItems.map((project: any) => ({
       id: project.id,
       name: project.name,
-      description: project.description,
       status: project.status,
-      budget: project.budget?.toString(),
-      startDate: project.startDate?.toISOString(),
-      endDate: project.endDate?.toISOString(),
+      start_date: project.startDate?.toISOString().split("T")[0],
+      end_date: project.endDate?.toISOString().split("T")[0] || null,
+      budget_total: project.budgetTotal ? Number(project.budgetTotal) : null,
+      currency: project.currency || "VND",
+      description: project.description,
+      thumbnail_url: project.thumbnailUrl,
       address: project.address,
-      clientName: project.clientName,
-      clientContact: project.clientContact,
-      thumbnailUrl: project.thumbnailUrl,
-      createdAt: project.createdAt.toISOString(),
-      updatedAt: project.updatedAt.toISOString(),
-      orgId: project.orgId,
-      createdBy: 'user_sample_123', // Default for now
-      updatedBy: 'user_sample_123', // Default for now
+      scale: project.scale,
+      investor_name: project.investorName,
+      investor_phone: project.investorPhone,
+      created_at: project.createdAt.toISOString(),
+      updated_at: project.updatedAt.toISOString(),
+      org_id: project.orgId,
     }));
 
     return new Response(
@@ -245,22 +215,22 @@ export async function GET(req: NextRequest) {
       }),
       {
         status: 200,
-        headers: { 'content-type': 'application/json' },
+        headers: { "content-type": "application/json" },
       },
     );
   } catch (error) {
-    console.error('Error fetching projects:', error);
+    console.error("Error fetching projects:", error);
     return new Response(
       JSON.stringify({
-        type: 'https://example.com/probs/internal-server-error',
-        title: 'Internal Server Error',
+        type: "https://siteflow.app/errors/internal-server-error",
+        title: "Internal Server Error",
         status: 500,
-        detail: 'Failed to fetch projects',
+        detail: "Failed to fetch projects",
         instance: req.url,
       }),
       {
         status: 500,
-        headers: { 'content-type': 'application/problem+json' },
+        headers: { "content-type": "application/problem+json" },
       },
     );
   }
@@ -269,22 +239,21 @@ export async function GET(req: NextRequest) {
 // POST /api/v1/projects
 export async function POST(req: NextRequest) {
   try {
-    const isE2E = req.headers.get('x-e2e-bypass') === 'true';
-    const orgId = req.headers.get('x-org-id') || 'org_sample_123';
-    const userId = req.headers.get('x-user-id') || 'user_sample_123';
+    const isE2E = req.headers.get("x-e2e-bypass") === "true";
+    const orgId = req.headers.get("x-org-id") || "org_sample_123";
 
     if (!isE2E && !orgId) {
       return new Response(
         JSON.stringify({
-          type: 'https://example.com/probs/validation-error',
-          title: 'Validation Error',
+          type: "https://siteflow.app/errors/validation-error",
+          title: "Validation Error",
           status: 400,
-          detail: 'Organization ID is required',
+          detail: "Organization ID is required",
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { 'content-type': 'application/problem+json' },
+          headers: { "content-type": "application/problem+json" },
         },
       );
     }
@@ -293,18 +262,18 @@ export async function POST(req: NextRequest) {
     try {
       body = await req.json();
     } catch (error) {
-      console.error('JSON parsing error:', error);
+      console.error("JSON parsing error:", error);
       return new Response(
         JSON.stringify({
-          type: 'https://example.com/probs/invalid-json',
-          title: 'Invalid JSON',
+          type: "https://siteflow.app/errors/invalid-json",
+          title: "Invalid JSON",
           status: 400,
-          detail: 'Request body must be valid JSON',
+          detail: "Request body must be valid JSON",
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { 'content-type': 'application/problem+json' },
+          headers: { "content-type": "application/problem+json" },
         },
       );
     }
@@ -314,16 +283,16 @@ export async function POST(req: NextRequest) {
     if (!validationResult.success) {
       return new Response(
         JSON.stringify({
-          type: 'https://example.com/probs/validation-error',
-          title: 'Validation Error',
+          type: "https://siteflow.app/errors/validation-error",
+          title: "Validation Error",
           status: 400,
-          detail: 'Invalid request data',
+          detail: "Invalid request data",
           instance: req.url,
           errors: validationResult.error.errors,
         }),
         {
           status: 400,
-          headers: { 'content-type': 'application/problem+json' },
+          headers: { "content-type": "application/problem+json" },
         },
       );
     }
@@ -343,116 +312,104 @@ export async function POST(req: NextRequest) {
           id: crypto.randomUUID(),
           orgId,
           name: validatedData.name,
+          status: validatedData.status,
+          startDate: validatedData.start_date,
+          endDate: validatedData.end_date || null,
+          budgetTotal: validatedData.budget_total?.toString() ?? null,
+          currency: validatedData.currency,
           description: validatedData.description ?? null,
-          budget: validatedData.budget?.toString() ?? null,
-          status: validatedData.status ?? 'PLANNING',
-          startDate: new Date(validatedData.startDate),
-          endDate: validatedData.endDate
-            ? new Date(validatedData.endDate)
-            : null,
+          thumbnailUrl: validatedData.thumbnail_url ?? null,
           address: validatedData.address ?? null,
-          clientName: validatedData.clientName ?? null,
-          clientContact: validatedData.clientContact ?? null,
-          thumbnailUrl: validatedData.thumbnailUrl ?? null,
+          scale: validatedData.scale ?? null,
+          investorName: validatedData.investor_name ?? null,
+          investorPhone: validatedData.investor_phone ?? null,
         })
         .returning();
 
       newProject = result;
       // Project created successfully
 
-      // Insert project members using the new members[] approach
-      if (validatedData.members && validatedData.members.length > 0) {
-        const memberInserts = validatedData.members.map(member => ({
-          id: crypto.randomUUID(),
-          projectId: newProject.id,
-          userId: member.userId,
-          role: member.role,
-        }));
-
-        await db
-          .insert(projectMembersSchema)
-          .values(memberInserts)
-          .onConflictDoNothing();
-        // Project members added successfully
-      }
+      // Project members functionality removed for canonical API
     } catch (error) {
-      console.error('=== DATABASE INSERT ERROR ===');
-      console.error('Error:', error);
+      console.error("=== DATABASE INSERT ERROR ===");
+      console.error("Error:", error);
       console.error(
-        'Error message:',
-        error instanceof Error ? error.message : 'Unknown error',
+        "Error message:",
+        error instanceof Error ? error.message : "Unknown error",
       );
       console.error(
-        'Error stack:',
+        "Error stack:",
         error instanceof Error ? error.stack : undefined,
       );
-      console.error('OrgId:', orgId);
-      console.error('Validated data:', validatedData);
-      console.error('Request body:', body);
-      console.error('===============================');
+      console.error("OrgId:", orgId);
+      console.error("Validated data:", validatedData);
+      console.error("Request body:", body);
+      console.error("===============================");
 
       return new Response(
         JSON.stringify({
-          type: 'https://example.com/probs/database-error',
-          title: 'Database Error',
+          type: "https://siteflow.app/errors/database-error",
+          title: "Database Error",
           status: 500,
           detail:
             error instanceof Error
               ? error.message
-              : 'Failed to create project in database',
+              : "Failed to create project in database",
           instance: req.url,
           errors: [
             {
-              field: 'database',
+              field: "database",
               message:
                 error instanceof Error
                   ? error.message
-                  : 'Unknown database error',
+                  : "Unknown database error",
             },
           ],
         }),
         {
           status: 500,
-          headers: { 'content-type': 'application/problem+json' },
+          headers: { "content-type": "application/problem+json" },
         },
       );
     }
 
     if (!newProject) {
-      console.error('Project creation returned null/undefined');
+      console.error("Project creation returned null/undefined");
       return new Response(
         JSON.stringify({
-          type: 'https://example.com/probs/database-error',
-          title: 'Database Error',
+          type: "https://siteflow.app/errors/database-error",
+          title: "Database Error",
           status: 500,
-          detail: 'Project creation returned no result',
+          detail: "Project creation returned no result",
           instance: req.url,
         }),
         {
           status: 500,
-          headers: { 'content-type': 'application/problem+json' },
+          headers: { "content-type": "application/problem+json" },
         },
       );
     }
 
-    // Format response
+    // Format canonical response
     const project = {
       id: newProject.id,
       name: newProject.name,
-      description: newProject.description,
       status: newProject.status,
-      budget: newProject.budget?.toString(),
-      startDate: newProject.startDate?.toISOString(),
-      endDate: newProject.endDate?.toISOString(),
+      start_date: newProject.startDate?.toISOString().split("T")[0],
+      end_date: newProject.endDate?.toISOString().split("T")[0] || null,
+      budget_total: newProject.budgetTotal
+        ? Number(newProject.budgetTotal)
+        : null,
+      currency: newProject.currency,
+      description: newProject.description,
+      thumbnail_url: newProject.thumbnailUrl,
       address: newProject.address,
-      clientName: newProject.clientName,
-      clientContact: newProject.clientContact,
-      thumbnailUrl: newProject.thumbnailUrl,
-      createdAt: newProject.createdAt.toISOString(),
-      updatedAt: newProject.updatedAt.toISOString(),
-      orgId: newProject.orgId,
-      createdBy: userId,
-      updatedBy: userId,
+      scale: newProject.scale,
+      investor_name: newProject.investorName,
+      investor_phone: newProject.investorPhone,
+      created_at: newProject.createdAt.toISOString(),
+      updated_at: newProject.updatedAt.toISOString(),
+      org_id: newProject.orgId,
     };
 
     return new Response(
@@ -462,22 +419,22 @@ export async function POST(req: NextRequest) {
       }),
       {
         status: 201,
-        headers: { 'content-type': 'application/json' },
+        headers: { "content-type": "application/json" },
       },
     );
   } catch (error) {
-    console.error('Error creating project:', error);
+    console.error("Error creating project:", error);
     return new Response(
       JSON.stringify({
-        type: 'https://example.com/probs/internal-server-error',
-        title: 'Internal Server Error',
+        type: "https://siteflow.app/errors/internal-server-error",
+        title: "Internal Server Error",
         status: 500,
-        detail: 'Failed to create project',
+        detail: "Failed to create project",
         instance: req.url,
       }),
       {
         status: 500,
-        headers: { 'content-type': 'application/problem+json' },
+        headers: { "content-type": "application/problem+json" },
       },
     );
   }

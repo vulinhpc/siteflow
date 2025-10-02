@@ -1,14 +1,33 @@
-'use client';
+"use client";
 
-import { Crown, MoreHorizontal, Search, Shield, User, UserPlus } from 'lucide-react';
-import React from 'react';
+import {
+  Crown,
+  MoreHorizontal,
+  Search,
+  Shield,
+  User,
+  UserPlus,
+} from "lucide-react";
+import React from "react";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export type Member = {
   id: string;
@@ -39,9 +58,9 @@ const roleIcons = {
 };
 
 const roleColors = {
-  admin: 'bg-red-100 text-red-800',
-  moderator: 'bg-blue-100 text-blue-800',
-  member: 'bg-gray-100 text-gray-800',
+  admin: "bg-red-100 text-red-800",
+  moderator: "bg-blue-100 text-blue-800",
+  member: "bg-gray-100 text-gray-800",
 };
 
 export function MembersList({
@@ -52,18 +71,19 @@ export function MembersList({
   onRoleChange,
   onRemove,
 }: MembersListProps) {
-  const [searchTerm, setSearchTerm] = React.useState('');
+  const [searchTerm, setSearchTerm] = React.useState("");
 
-  const filteredMembers = members.filter(member =>
-    member.displayName.toLowerCase().includes(searchTerm.toLowerCase())
-    || member.email.toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredMembers = members.filter(
+    (member) =>
+      member.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
     });
   };
 
@@ -94,12 +114,8 @@ export function MembersList({
           <div>
             <CardTitle>Members</CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              {totalCount}
-{' '}
-member
-{totalCount !== 1 ? 's' : ''}
-{' '}
-in your organization
+              {totalCount} member
+              {totalCount !== 1 ? "s" : ""} in your organization
             </p>
           </div>
           <Button onClick={onInvite} className="bg-black hover:bg-gray-800">
@@ -115,7 +131,7 @@ in your organization
           <Input
             placeholder="Search members..."
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -132,16 +148,19 @@ in your organization
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredMembers.length === 0
-? (
+              {filteredMembers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
-                    {searchTerm ? 'No members found matching your search.' : 'No members found.'}
+                  <TableCell
+                    colSpan={4}
+                    className="py-8 text-center text-muted-foreground"
+                  >
+                    {searchTerm
+                      ? "No members found matching your search."
+                      : "No members found."}
                   </TableCell>
                 </TableRow>
-              )
-: (
-                filteredMembers.map(member => (
+              ) : (
+                filteredMembers.map((member) => (
                   <TableRow key={member.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
@@ -153,7 +172,9 @@ in your organization
                           />
                           {member.isCurrentUser && (
                             <div className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-blue-500">
-                              <span className="text-xs font-bold text-white">✓</span>
+                              <span className="text-xs font-bold text-white">
+                                ✓
+                              </span>
                             </div>
                           )}
                         </div>
@@ -166,7 +187,9 @@ in your organization
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground">{member.email}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {member.email}
+                          </p>
                         </div>
                       </div>
                     </TableCell>
@@ -179,7 +202,7 @@ in your organization
                       <div className="flex items-center space-x-2">
                         {getRoleIcon(member.role)}
                         <Badge
-                          className={`${roleColors[member.role as keyof typeof roleColors] || 'bg-gray-100 text-gray-800'} capitalize`}
+                          className={`${roleColors[member.role as keyof typeof roleColors] || "bg-gray-100 text-gray-800"} capitalize`}
                         >
                           {member.role}
                         </Badge>
@@ -194,15 +217,25 @@ in your organization
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => onRoleChange?.(member.id, 'admin')}>
+                            <DropdownMenuItem
+                              onClick={() => onRoleChange?.(member.id, "admin")}
+                            >
                               <Crown className="mr-2 size-4" />
                               Make Admin
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onRoleChange?.(member.id, 'moderator')}>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                onRoleChange?.(member.id, "moderator")
+                              }
+                            >
                               <Shield className="mr-2 size-4" />
                               Make Moderator
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onRoleChange?.(member.id, 'member')}>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                onRoleChange?.(member.id, "member")
+                              }
+                            >
                               <User className="mr-2 size-4" />
                               Make Member
                             </DropdownMenuItem>

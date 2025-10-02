@@ -1,7 +1,7 @@
 # 🧭 SiteFlow — Canonical Project Description (Complete, No-Detail-Left-Behind)
 
-> **This is the SINGLE SOURCE OF TRUTH** for SiteFlow.
-> It consolidates every requirement and learning from previous docs, audits, chat logs, and fixes — including **Shadcn Admin UI**, **boilerplate compliance**, **coding & SaaS standards**, **i18n pitfalls & remedies**, **Daily Log approval + QC**, **Transactions with payment_status**, and **Share Link rules**.
+> **This is the SINGLE SOURCE OF TRUTH** for SiteFlow.  
+> It consolidates every requirement and learning from previous docs, audits, chat logs, and fixes — including **Shadcn Admin UI**, **boilerplate compliance**, **coding & SaaS standards**, **i18n pitfalls & remedies**, **Daily Log approval + QC**, **Transactions with payment_status**, and **Share Link rules**.  
 > Store at: `docs/Project_Description_Canonical.md`
 
 ---
@@ -95,7 +95,7 @@ RBAC enforced via Clerk + middleware; RLS recommended on DB (scope by `org_id`).
 
 ### `tasks`
 
-- `id uuid`, `project_id`, `category_id`, `name text`,
+- `id uuid`, `project_id`, `category_id`, `name text`,  
   `status enum('WAITING','IN_PROGRESS','DONE') default 'WAITING'`, timestamps.
 
 ### `daily_logs`
@@ -323,7 +323,7 @@ Base: `/api/v1` — JSON only, cursor pagination, Zod validation, RFC7807 errors
 
 - Cards for KPI; Dialog for Create Project; Form components (RHF+Zod); Table for lists; Tabs for details; Badge for statuses; Avatar for managers; Tooltip for hints; Toast for success/error; Skeleton for loading; Progress for budget/progress bars.
 
-**Do**: follow shadcn examples, keep composability.
+**Do**: follow shadcn examples, keep composability.  
 **Don’t**: introduce non-shadcn UI libs; avoid custom CSS spaghetti.
 
 ---
