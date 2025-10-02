@@ -164,7 +164,7 @@ export function ProjectsToolbar({
                         className="rounded"
                       />
                       <Label htmlFor={status} className="text-sm">
-                        {t(`status.${status.replace('_', '')}`)}
+                        {t(`status.${status}`)}
                       </Label>
                     </div>
                   ))}

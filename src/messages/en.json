@@ -188,7 +188,8 @@
       "view": "View Details",
       "edit": "Edit Project", 
       "share": "Copy Share Link",
-      "archive": "Archive Project"
+      "archive": "Archive Project",
+      "create": "Create Project"
     },
     "columns": {
       "thumbnail": "Image",
@@ -382,6 +383,11 @@
     "finance": "Finance",
     "analytics": "Analytics",
     "settings": "Settings"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up", 
+    "signOut": "Sign Out"
   },
   "header": {
     "search": "Search projects, tasks, logs...",

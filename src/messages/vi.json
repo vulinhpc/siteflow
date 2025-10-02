@@ -267,7 +267,8 @@
       "view": "Xem chi tiết",
       "edit": "Chỉnh sửa dự án",
       "share": "Sao chép liên kết chia sẻ", 
-      "archive": "Lưu trữ dự án"
+      "archive": "Lưu trữ dự án",
+      "create": "Tạo dự án"
     },
     "columns": {
       "thumbnail": "Hình ảnh",
