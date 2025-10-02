@@ -1,4 +1,4 @@
-﻿# PHASE 4A2 COMPLETED ✅
+# PHASE 4A2 COMPLETED ✅
 
 ## Summary
 
