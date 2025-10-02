@@ -22,8 +22,8 @@ export function KPICards() {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={`skeleton-${i}`}>
+        {Array.from({ length: 4 }, (_, i) => (
+          <Card key={`skeleton-kpi-${i}`}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
@@ -88,7 +88,7 @@ export function KPICards() {
       {cards.map((card) => {
         const Icon = card.icon;
         return (
-          <Card key={card.label}>
+          <Card key={card.title}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">

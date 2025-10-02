@@ -14,7 +14,7 @@ import React from "react";
 
 import { KPICard } from "@/components/admin/kpi-card";
 import { PaginatedTable } from "@/components/admin/paginated-table";
-import { CreateProjectModal } from "@/components/dashboard/CreateProjectModal";
+import CreateProjectModal from "@/components/dashboard/CreateProjectModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {

@@ -5,7 +5,7 @@ import { Download, Eye, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 type MediaAsset = {
   id: string;
@@ -189,6 +189,9 @@ images
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Image Preview</DialogTitle>
+            <DialogDescription className="sr-only">
+              View and interact with the selected media asset in full size
+            </DialogDescription>
           </DialogHeader>
           {selectedAsset && (
             <div className="space-y-4">

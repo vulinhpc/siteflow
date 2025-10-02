@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, PlusIcon, TrashIcon, UserIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -44,6 +44,33 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 
+// Helper function to format date display based on locale
+const formatDateDisplay = (dateString: string, locale: string) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (locale === "vi") {
+    return date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit", 
+      year: "numeric"
+    });
+  }
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  });
+};
+
+// Helper function to format numbers with thousands separator
+const formatNumber = (value: number | undefined, locale: string) => {
+  if (!value) return "";
+  if (locale === "vi") {
+    return value.toLocaleString("vi-VN");
+  }
+  return value.toLocaleString("en-US");
+};
+
 // Member schema for project assignment
 const memberSchema = z.object({
   userId: z.string().min(1, "User ID is required"),
@@ -61,7 +88,7 @@ const memberSchema = z.object({
   ),
 });
 
-// Zod schema matching API requirements
+// Zod schema matching API requirements with canonical fields
 const createProjectSchema = z
   .object({
     name: z
@@ -69,7 +96,7 @@ const createProjectSchema = z
       .min(1, "Project name is required")
       .max(255, "Project name must be at most 255 characters"),
     status: z.enum(
-      ["PLANNING", "IN_PROGRESS", "DONE", "ON_HOLD", "CANCELLED"],
+      ["planning", "in_progress", "on_hold", "completed"],
       {
         required_error: "Project status is required",
       },
@@ -86,6 +113,15 @@ const createProjectSchema = z
         const date = new Date(val);
         return !Number.isNaN(date.getTime());
       }, "Invalid date format"),
+    // Canonical fields
+    budget_total: z.number().min(0, "Budget must be non-negative").optional(),
+    currency: z.string().default("VND"),
+    address: z.string().optional(),
+    area_m2: z.number().min(0, "Area must be non-negative").optional(),
+    floors: z.number().min(1, "Floors must be at least 1").optional(),
+    investor_name: z.string().optional(),
+    investor_phone: z.string().optional(),
+    // Keep existing fields
     members: z.array(memberSchema).optional(),
     thumbnailUrl: z
       .string()
@@ -165,7 +201,7 @@ type CreateProjectModalProps = {
   onProjectCreated?: () => void;
 };
 
-export function CreateProjectModal({
+export default function CreateProjectModal({
   open,
   onOpenChange,
   onSubmit,
@@ -173,6 +209,7 @@ export function CreateProjectModal({
 }: CreateProjectModalProps) {
   const { addToast } = useToast();
   const t = useTranslations("projects");
+  const locale = useLocale();
   const { users: organizationUsers, loading: usersLoading } =
     useOrganizationUsers();
 
@@ -180,10 +217,17 @@ export function CreateProjectModal({
     resolver: zodResolver(createProjectSchema),
     defaultValues: {
       name: "",
-      status: "PLANNING",
+      status: "planning",
       description: "",
       startDate: "",
       endDate: "",
+      budget_total: undefined,
+      currency: "VND",
+      address: "",
+      area_m2: undefined,
+      floors: undefined,
+      investor_name: "",
+      investor_phone: "",
       members: [],
       thumbnailUrl: "",
     },
@@ -192,12 +236,24 @@ export function CreateProjectModal({
 
   const handleSubmit = async (data: CreateProjectFormData) => {
     try {
-      // Clean up data before submission
+      // Map form data to API format with canonical fields
       const cleanedData = {
-        ...data,
+        name: data.name,
+        status: data.status,
+        start_date: data.startDate,
+        end_date: data.endDate || undefined,
+        budget_total: data.budget_total || undefined,
+        currency: data.currency || "VND",
+        address: data.address || undefined,
+        // Map area_m2 and floors to scale object
+        scale: (data.area_m2 || data.floors) ? {
+          area_m2: data.area_m2 || undefined,
+          floors: data.floors || undefined,
+        } : undefined,
+        investor_name: data.investor_name || undefined,
+        investor_phone: data.investor_phone || undefined,
         description: data.description || undefined,
-        endDate: data.endDate || undefined,
-        thumbnailUrl: data.thumbnailUrl || undefined,
+        thumbnail_url: data.thumbnailUrl || undefined,
       };
 
       await onSubmit(cleanedData);
@@ -256,10 +312,10 @@ export function CreateProjectModal({
       >
         <DialogHeader>
           <DialogTitle id="create-project-title">
-            {t("createProject")}
+            {t("createTitle") || "Create Project"}
           </DialogTitle>
           <DialogDescription id="create-project-description">
-            {t("createProjectDescription")}
+            {t("createDescription") || "Fill in details to add a new construction project"}
           </DialogDescription>
         </DialogHeader>
 
@@ -330,8 +386,8 @@ export function CreateProjectModal({
                             >
                               <CalendarIcon className="mr-2 size-4" />
                               {field.value
-                                ? new Date(field.value).toLocaleDateString()
-                                : "Select start date"}
+                                ? formatDateDisplay(field.value, locale)
+                                : t("selectDate")}
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
@@ -384,8 +440,8 @@ export function CreateProjectModal({
                             >
                               <CalendarIcon className="mr-2 size-4" />
                               {field.value
-                                ? new Date(field.value).toLocaleDateString()
-                                : "Select end date"}
+                                ? formatDateDisplay(field.value, locale)
+                                : t("selectDate")}
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
@@ -425,7 +481,7 @@ export function CreateProjectModal({
                   render={({ field }) => (
                     <FormItem className="sm:col-span-2">
                       <FormLabel htmlFor="project-status">
-                        {t("status")} *
+                        {t("statusLabel")} *
                       </FormLabel>
                       <Select
                         onValueChange={field.onChange}
@@ -444,15 +500,14 @@ export function CreateProjectModal({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="PLANNING">
-                            {t("planning")}
+                          <SelectItem value="planning">
+                            {t("status.planning")}
                           </SelectItem>
-                          <SelectItem value="IN_PROGRESS">
-                            {t("inProgress")}
+                          <SelectItem value="in_progress">
+                            {t("status.in_progress")}
                           </SelectItem>
-                          <SelectItem value="DONE">{t("completed")}</SelectItem>
-                          <SelectItem value="ON_HOLD">{t("onHold")}</SelectItem>
-                          <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                          <SelectItem value="on_hold">{t("status.on_hold")}</SelectItem>
+                          <SelectItem value="completed">{t("status.completed")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage id="project-status-error" />
@@ -483,7 +538,7 @@ export function CreateProjectModal({
                           id="project-description"
                           placeholder={t("descriptionPlaceholder")}
                           className="resize-none"
-                          rows={4}
+                          rows={3}
                           {...field}
                         />
                       </FormControl>
@@ -492,6 +547,177 @@ export function CreateProjectModal({
                   )}
                 />
 
+                {/* Budget and Currency */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="budget_total"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="project-budget">
+                          {t("budgetTotal")}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="project-budget"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder={t("budgetTotalPlaceholder")}
+                            {...field}
+                            value={field.value || ""}
+                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="project-currency">
+                          {t("currencyLabel")}
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger id="project-currency">
+                              <SelectValue placeholder={t("selectCurrency")} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="VND">{t("currency.vnd")}</SelectItem>
+                            <SelectItem value="USD">{t("currency.usd")}</SelectItem>
+                            <SelectItem value="EUR">{t("currency.eur")}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Address */}
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="project-address">
+                        {t("address")}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          id="project-address"
+                          placeholder={t("addressPlaceholder")}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Scale Information */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="area_m2"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="project-area">
+                          {t("areaM2")}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="project-area"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder={t("areaM2Placeholder")}
+                            {...field}
+                            value={field.value || ""}
+                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="floors"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="project-floors">
+                          {t("floors")}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="project-floors"
+                            type="number"
+                            min="1"
+                            step="1"
+                            placeholder={t("floorsPlaceholder")}
+                            {...field}
+                            value={field.value || ""}
+                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Investor Information */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="investor_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="project-investor-name">
+                          {t("investorName")}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="project-investor-name"
+                            placeholder={t("investorNamePlaceholder")}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="investor_phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="project-investor-phone">
+                          {t("investorPhone")}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="project-investor-phone"
+                            type="tel"
+                            placeholder={t("investorPhonePlaceholder")}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 {/* Thumbnail Upload */}
                 <FormField
                   control={form.control}
@@ -499,7 +725,7 @@ export function CreateProjectModal({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel htmlFor="project-thumbnail">
-                        Project Thumbnail
+                        {t("thumbnailUrl")}
                       </FormLabel>
                       <FormControl>
                         <div className="space-y-2">

@@ -114,8 +114,8 @@ export async function GET(
       id: projectData.id,
       name: projectData.name,
       status: projectData.status,
-      start_date: projectData.startDate?.toISOString().split("T")[0],
-      end_date: projectData.endDate?.toISOString().split("T")[0] || null,
+      start_date: projectData.startDate ? (typeof projectData.startDate === 'string' ? projectData.startDate : projectData.startDate.toISOString().split("T")[0]) : null,
+      end_date: projectData.endDate ? (typeof projectData.endDate === 'string' ? projectData.endDate : projectData.endDate.toISOString().split("T")[0]) : null,
       budget_total: projectData.budgetTotal
         ? Number(projectData.budgetTotal)
         : null,
@@ -313,8 +313,8 @@ export async function PATCH(
       id: updatedProject.id,
       name: updatedProject.name,
       status: updatedProject.status,
-      start_date: updatedProject.startDate?.toISOString().split("T")[0],
-      end_date: updatedProject.endDate?.toISOString().split("T")[0] || null,
+      start_date: updatedProject.startDate ? (typeof updatedProject.startDate === 'string' ? updatedProject.startDate : updatedProject.startDate.toISOString().split("T")[0]) : null,
+      end_date: updatedProject.endDate ? (typeof updatedProject.endDate === 'string' ? updatedProject.endDate : updatedProject.endDate.toISOString().split("T")[0]) : null,
       budget_total: updatedProject.budgetTotal
         ? Number(updatedProject.budgetTotal)
         : null,
