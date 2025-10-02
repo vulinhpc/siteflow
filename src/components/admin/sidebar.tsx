@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   BarChart3,
@@ -10,47 +10,48 @@ import {
   LayoutDashboard,
   ListChecks,
   Settings,
-} from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-const navigation = [
+const getNavigation = (locale: string) => [
   {
-    name: 'Dashboard',
-    href: '/en/dashboard',
+    key: "dashboard",
+    href: `/${locale}/dashboard`,
     icon: LayoutDashboard,
   },
   {
-    name: 'Projects',
-    href: '/en/projects',
+    key: "projects",
+    href: `/${locale}/projects`,
     icon: Building2,
   },
   {
-    name: 'Tasks',
-    href: '/en/tasks',
+    key: "tasks",
+    href: `/${locale}/tasks`,
     icon: ListChecks,
   },
   {
-    name: 'Daily Logs',
-    href: '/en/daily-logs',
+    key: "dailyLogs",
+    href: `/${locale}/daily-logs`,
     icon: Calendar,
   },
   {
-    name: 'Finance',
-    href: '/en/finance',
+    key: "finance",
+    href: `/${locale}/finance`,
     icon: DollarSign,
   },
   {
-    name: 'Analytics',
-    href: '/en/analytics',
+    key: "analytics",
+    href: `/${locale}/analytics`,
     icon: BarChart3,
   },
   {
-    name: 'Settings',
-    href: '/en/settings',
+    key: "settings",
+    href: `/${locale}/settings`,
     icon: Settings,
   },
 ];
@@ -67,12 +68,17 @@ export function AdminSidebar({
   className,
 }: AdminSidebarProps) {
   const pathname = usePathname();
+  const t = useTranslations("sidebar");
+
+  // Extract locale from pathname
+  const locale = pathname.split("/")[1] || "en";
+  const navigation = getNavigation(locale);
 
   return (
     <div
       className={cn(
-        'flex h-full flex-col border-r bg-background transition-all duration-300',
-        isCollapsed ? 'w-16' : 'w-64',
+        "flex h-full flex-col border-r bg-background transition-all duration-300",
+        isCollapsed ? "w-16" : "w-64",
         className,
       )}
     >
@@ -98,11 +104,9 @@ export function AdminSidebar({
           onClick={onToggleCollapse}
           className="size-8"
         >
-          {isCollapsed
-? (
+          {isCollapsed ? (
             <ChevronRight className="size-4" />
-          )
-: (
+          ) : (
             <ChevronLeft className="size-4" />
           )}
         </Button>
@@ -111,28 +115,32 @@ export function AdminSidebar({
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-4">
         {navigation.map((item) => {
-          const isActive = pathname === item.href || pathname?.startsWith(item.href);
+          const isActive =
+            pathname === item.href || pathname?.startsWith(item.href);
           const Icon = item.icon;
 
           return (
             <Link
-              key={item.name}
+              key={item.key}
               href={item.href}
               className={cn(
-                'flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors group',
+                "flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors group",
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                isCollapsed && 'justify-center',
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                isCollapsed && "justify-center",
               )}
             >
-              <Icon className={cn(
-                'h-4 w-4 transition-colors',
-                !isCollapsed && 'mr-3',
-                isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground',
-              )}
+              <Icon
+                className={cn(
+                  "h-4 w-4 transition-colors",
+                  !isCollapsed && "mr-3",
+                  isActive
+                    ? "text-primary-foreground"
+                    : "text-muted-foreground group-hover:text-foreground",
+                )}
               />
-              {!isCollapsed && <span>{item.name}</span>}
+              {!isCollapsed && <span>{t(item.key as any)}</span>}
             </Link>
           );
         })}
@@ -144,11 +152,11 @@ export function AdminSidebar({
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <div className="size-2 rounded-full bg-green-500"></div>
-              <span className="text-xs text-muted-foreground">All systems operational</span>
+              <span className="text-xs text-muted-foreground">
+                All systems operational
+              </span>
             </div>
-            <div className="text-xs text-muted-foreground">
-              SiteFlow v1.0.0
-            </div>
+            <div className="text-xs text-muted-foreground">SiteFlow v1.0.0</div>
           </div>
         )}
       </div>

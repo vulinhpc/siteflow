@@ -1,35 +1,18 @@
-'use client';
+"use client";
 
-import {
-  OrganizationSwitcher,
-  UserButton,
-} from '@clerk/nextjs';
-import {
-  Bell,
-  Calendar,
-  Menu,
-  Moon,
-  Plus,
-  Search,
-  Sun,
-} from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
+import { Bell, Menu, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 
-import { LocaleSwitcher } from '@/components/LocaleSwitcher';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { Button } from "@/components/ui/button";
 
 type AdminHeaderProps = {
   onToggleSidebar: () => void;
-  onCreateProject?: () => void;
   className?: string;
 };
 
-export function AdminHeader({
-  onToggleSidebar,
-  onCreateProject,
-  className,
-}: AdminHeaderProps) {
+export function AdminHeader({ onToggleSidebar, className }: AdminHeaderProps) {
   const { theme, setTheme } = useTheme();
 
   return (
@@ -48,26 +31,8 @@ export function AdminHeader({
         </Button>
       </div>
 
-      {/* Center section - Search and Actions */}
-      <div className="mx-4 flex max-w-2xl flex-1 items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search projects, tasks, logs..."
-            className="w-full pl-10"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Calendar className="mr-2 size-4" />
-            View Calendar
-          </Button>
-              <Button size="sm" onClick={onCreateProject}>
-                <Plus className="mr-2 size-4" />
-                Create Project
-              </Button>
-        </div>
-      </div>
+      {/* Center section - Spacer */}
+      <div className="flex-1"></div>
 
       {/* Right section - Actions and User */}
       <div className="flex items-center justify-end gap-2">
@@ -78,7 +43,7 @@ export function AdminHeader({
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="hidden sm:flex"
         >
           <Sun className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -89,7 +54,9 @@ export function AdminHeader({
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="size-4" />
-          <span className="absolute -right-1 -top-1 flex size-3 items-center justify-center rounded-full bg-red-500 text-xs text-white">3</span>
+          <span className="absolute -right-1 -top-1 flex size-3 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+            3
+          </span>
           <span className="sr-only">Notifications</span>
         </Button>
 
@@ -97,9 +64,10 @@ export function AdminHeader({
         <OrganizationSwitcher
           appearance={{
             elements: {
-              organizationSwitcherTrigger: 'flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground rounded-md transition-colors',
-              organizationSwitcherTriggerIcon: 'size-4',
-              organizationSwitcherPopoverCard: 'w-64',
+              organizationSwitcherTrigger:
+                "flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground rounded-md transition-colors",
+              organizationSwitcherTriggerIcon: "size-4",
+              organizationSwitcherPopoverCard: "w-64",
             },
           }}
         />
@@ -108,9 +76,9 @@ export function AdminHeader({
         <UserButton
           appearance={{
             elements: {
-              userButtonAvatarBox: 'size-8',
-              userButtonPopoverCard: 'w-64',
-              userButtonPopoverActionButton: 'text-sm',
+              userButtonAvatarBox: "size-8",
+              userButtonPopoverCard: "w-64",
+              userButtonPopoverActionButton: "text-sm",
             },
           }}
         />

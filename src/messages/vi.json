@@ -1,0 +1,296 @@
+{
+  "Index": {
+    "meta_title": "SiteFlow - Quản lý dự án xây dựng đơn giản và hiệu quả.",
+    "meta_description": "Template landing page miễn phí và mã nguồn mở cho doanh nghiệp SaaS của bạn, được xây dựng với React, TypeScript, Shadcn UI và Tailwind CSS."
+  },
+  "Navbar": {
+    "sign_in": "Đăng nhập",
+    "sign_up": "Đăng ký",
+    "product": "Sản phẩm",
+    "docs": "Tài liệu",
+    "blog": "Blog",
+    "community": "Cộng đồng",
+    "company": "Công ty"
+  },
+  "Hero": {
+    "follow_twitter": "Theo dõi @Ixartz trên Twitter",
+    "title": "Template <important>SaaS hoàn hảo</important> để xây dựng và mở rộng doanh nghiệp của bạn một cách dễ dàng.",
+    "description": "Template landing page miễn phí và mã nguồn mở cho doanh nghiệp SaaS của bạn, được xây dựng với React, TypeScript, Shadcn UI và Tailwind CSS.",
+    "primary_button": "Bắt đầu",
+    "secondary_button": "Star trên GitHub"
+  },
+  "Features": {
+    "section_subtitle": "Tính năng",
+    "section_title": "Khai phá toàn bộ tiềm năng của SiteFlow",
+    "section_description": "Template landing page miễn phí và mã nguồn mở cho doanh nghiệp SaaS của bạn, được xây dựng với React, TypeScript, Shadcn UI và Tailwind CSS.",
+    "feature1_title": "Node.js",
+    "feature2_title": "React",
+    "feature3_title": "Tailwind CSS",
+    "feature4_title": "TypeScript",
+    "feature5_title": "Shadcn UI",
+    "feature6_title": "ESLint",
+    "feature_description": "Template landing page miễn phí và mã nguồn mở cho doanh nghiệp SaaS của bạn, được xây dựng với React, TypeScript, Shadcn UI và Tailwind CSS."
+  },
+  "Pricing": {
+    "section_subtitle": "Giá cả",
+    "section_title": "Khai phá toàn bộ tiềm năng của SiteFlow",
+    "section_description": "Template landing page miễn phí và mã nguồn mở cho doanh nghiệp SaaS của bạn, được xây dựng với React, TypeScript, Shadcn UI và Tailwind CSS.",
+    "button_text": "Bắt đầu"
+  },
+  "PricingPlan": {
+    "free_plan_name": "Miễn phí",
+    "premium_plan_name": "Cao cấp",
+    "enterprise_plan_name": "Doanh nghiệp",
+    "free_plan_description": "Cho cá nhân",
+    "premium_plan_description": "Cho nhóm nhỏ",
+    "enterprise_plan_description": "Cho lãnh đạo ngành",
+    "feature_team_member": "{number} Thành viên nhóm",
+    "feature_website": "{number} Trang web",
+    "feature_storage": "{number}GB Lưu trữ",
+    "feature_transfer": "{number}TB Truyền tải",
+    "feature_email_support": "Hỗ trợ email",
+    "plan_interval_month": "tháng",
+    "plan_interval_year": "năm",
+    "plan_interval_lifetime": "trọn đời"
+  },
+  "FAQ": {
+    "question": "Câu hỏi thường gặp",
+    "answer": "Câu trả lời"
+  },
+  "CTA": {
+    "title": "Sẵn sàng bắt đầu?",
+    "description": "Bắt đầu xây dựng ứng dụng của bạn ngay hôm nay.",
+    "button_text": "Bắt đầu ngay"
+  },
+  "Footer": {
+    "product": "Sản phẩm",
+    "docs": "Tài liệu",
+    "blog": "Blog",
+    "community": "Cộng đồng",
+    "company": "Công ty",
+    "terms_of_service": "Điều khoản dịch vụ",
+    "privacy_policy": "Chính sách bảo mật",
+    "designed_by": "Thiết kế bởi"
+  },
+  "Sponsors": {
+    "title": "Được tài trợ bởi"
+  },
+  "ProtectFallback": {
+    "not_enough_permission": "Bạn không có đủ quyền để truy cập trang này."
+  },
+  "SignIn": {
+    "meta_title": "Đăng nhập",
+    "meta_description": "Đăng nhập vào tài khoản của bạn để truy cập vào bảng điều khiển."
+  },
+  "SignUp": {
+    "meta_title": "Đăng ký",
+    "meta_description": "Tạo tài khoản để bắt đầu sử dụng nền tảng quản lý dự án xây dựng."
+  },
+  "DashboardLayout": {
+    "home": "Trang chủ",
+    "todos": "Công việc",
+    "members": "Thành viên",
+    "billing": "Thanh toán",
+    "settings": "Cài đặt"
+  },
+  "DashboardIndex": {
+    "title_bar": "Bảng điều khiển",
+    "title_description": "Chào mừng đến với bảng điều khiển SiteFlow",
+    "message_state": "Thông tin hiện tại của dự án xây dựng",
+    "loading_state": "Đang tải dữ liệu...",
+    "error_state": "Đã xảy ra lỗi khi tải dữ liệu"
+  },
+  "UserProfile": {
+    "title_bar": "Hồ sơ người dùng",
+    "title_description": "Quản lý thông tin tài khoản và cài đặt của bạn"
+  },
+  "OrganizationProfile": {
+    "title_bar": "Hồ sơ tổ chức",
+    "title_description": "Quản lý cài đặt tổ chức và thành viên"
+  },
+  "Billing": {
+    "title_bar": "Thanh toán và hóa đơn",
+    "current_section_title": "Gói hiện tại",
+    "current_section_description": "Quản lý gói đăng ký và phương thức thanh toán của bạn",
+    "manage_subscription_button": "Quản lý đăng ký",
+    "upgrade_button": "Nâng cấp gói"
+  },
+  "BillingOptions": {
+    "current_plan": "Gói hiện tại",
+    "upgrade_plan": "Nâng cấp gói"
+  },
+  "CheckoutConfirmation": {
+    "title_bar": "Xác nhận thanh toán",
+    "message_success": "Thanh toán thành công",
+    "message_error": "Đã xảy ra lỗi trong quá trình thanh toán",
+    "back_to_billing_button": "Quay lại trang thanh toán"
+  },
+  "DataTable": {
+    "no_results": "Không có kết quả nào."
+  },
+  "Todos": {
+    "title_bar": "Danh sách công việc",
+    "add_todo_section": "Thêm công việc mới",
+    "table_search_placeholder": "Tìm kiếm công việc..."
+  },
+  "TodoTableColumns": {
+    "open_menu": "Mở menu",
+    "title": "Tiêu đề",
+    "message": "Nội dung",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa"
+  },
+  "AddTodo": {
+    "title_bar": "Thêm công việc",
+    "add_todo_section_title": "Tạo công việc mới",
+    "add_todo_section_description": "Điền vào biểu mẫu bên dưới để thêm công việc mới"
+  },
+  "EditTodo": {
+    "title_bar": "Chỉnh sửa công việc",
+    "edit_todo_section_title": "Sửa đổi công việc",
+    "edit_todo_section_description": "Điền vào biểu mẫu bên dưới để chỉnh sửa công việc"
+  },
+  "TodoForm": {
+    "title_label": "Tiêu đề",
+    "title_description": "Nhập tiêu đề mô tả cho công việc của bạn.",
+    "message_title": "Nội dung",
+    "message_description": "Nhập nội dung chi tiết cho công việc của bạn.",
+    "submit_button": "Gửi"
+  },
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "create": "Tạo mới",
+    "update": "Cập nhật",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "sort": "Sắp xếp",
+    "actions": "Hành động",
+    "name": "Tên",
+    "description": "Mô tả",
+    "status": "Trạng thái",
+    "date": "Ngày",
+    "time": "Thời gian"
+  },
+  "sidebar": {
+    "dashboard": "Bảng điều khiển",
+    "projects": "Dự án",
+    "tasks": "Công việc",
+    "dailyLogs": "Nhật ký công trường",
+    "finance": "Tài chính",
+    "analytics": "Phân tích",
+    "settings": "Cài đặt"
+  },
+  "header": {
+    "search": "Tìm kiếm dự án, công việc, nhật ký...",
+    "viewCalendar": "Xem Lịch",
+    "createProject": "Tạo Dự án",
+    "notifications": "Thông báo",
+    "profile": "Hồ sơ",
+    "toggleTheme": "Chuyển đổi chế độ"
+  },
+  "dashboard": {
+    "title": "Bảng điều khiển",
+    "welcome": "Chào mừng trở lại! Đây là những gì đang diễn ra với các dự án xây dựng của bạn.",
+    "projects": "Dự án",
+    "totalProjects": "Tổng số dự án",
+    "activeProjects": "Dự án đang hoạt động",
+    "completedProjects": "Dự án hoàn thành",
+    "totalBudget": "Tổng ngân sách",
+    "teamMembers": "Thành viên nhóm",
+    "createProject": "Tạo dự án",
+    "recentProjects": "Dự án gần đây",
+    "projectsOverview": "Tổng quan các dự án xây dựng đang hoạt động của bạn",
+    "viewAll": "Xem tất cả",
+    "loadingProjects": "Đang tải dự án...",
+    "errorLoadingProjects": "Lỗi tải dự án",
+    "noProjectsFound": "Không tìm thấy dự án",
+    "createFirstProject": "Tạo dự án đầu tiên để bắt đầu",
+    "quickActions": "Hành động nhanh",
+    "addDailyLog": "Thêm nhật ký hàng ngày",
+    "recordExpense": "Ghi chi phí",
+    "manageTeam": "Quản lý nhóm",
+    "recentActivity": "Hoạt động gần đây",
+    "budgetOverview": "Tổng quan ngân sách",
+    "totalSpent": "Tổng chi",
+    "remaining": "Còn lại",
+    "budgetRemaining": "ngân sách còn lại",
+    "currentPageProjectBudgets": "Ngân sách dự án trang hiện tại",
+    "currentPageActiveProjects": "Dự án đang hoạt động trang hiện tại",
+    "currentPageManagers": "Quản lý trang hiện tại",
+    "projectsActive": "dự án đang hoạt động",
+    "active": "Đang hoạt động",
+    "activityTrackingComingSoon": "Theo dõi hoạt động sẽ sớm có",
+    "realTimeActivityLogs": "Nhật ký hoạt động thời gian thực sẽ có sẵn tại đây",
+    "showing": "Hiển thị",
+    "of": "của",
+    "projects": "dự án",
+    "page": "Trang",
+    "table": {
+      "thumbnail": "Ảnh đại diện",
+      "projectName": "Tên dự án",
+      "status": "Trạng thái",
+      "manager": "Quản lý",
+      "budget": "Ngân sách",
+      "startDate": "Ngày bắt đầu",
+      "endDate": "Ngày kết thúc"
+    }
+  },
+  "projects": {
+    "title": "Dự án",
+    "createProject": "Tạo dự án",
+    "createProjectDescription": "Tạo dự án xây dựng mới để theo dõi tiến độ và quản lý tài nguyên.",
+    "basicInfo": "Thông tin cơ bản",
+    "projectName": "Tên dự án",
+    "projectNamePlaceholder": "Nhập tên dự án",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
+    "status": "Trạng thái",
+    "planning": "Lập kế hoạch",
+    "inProgress": "Đang thực hiện",
+    "onHold": "Tạm dừng",
+    "completed": "Hoàn thành",
+    "details": "Chi tiết dự án",
+    "description": "Mô tả",
+    "descriptionPlaceholder": "Nhập mô tả dự án (tùy chọn)",
+    "thumbnail": "Hình đại diện dự án",
+    "uploadTip": "Nhấp để tải lên hoặc kéo thả (PNG, JPG, GIF, WebP tối đa 5MB)",
+    "budget": "Ngân sách",
+    "budgetPlaceholder": "Nhập số tiền ngân sách",
+    "manager": "Quản lý",
+    "managerPlaceholder": "Chọn quản lý dự án",
+    "optional": "(Tùy chọn)",
+    "searchProjects": "Tìm kiếm dự án...",
+    "showing": "Hiển thị",
+    "of": "của",
+    "page": "Trang",
+    "cancel": "Hủy",
+    "create": "Tạo dự án",
+    "creating": "Đang tạo...",
+    "selectDate": "Chọn ngày",
+    "selectStatus": "Chọn trạng thái",
+    "noManagersFound": "Không tìm thấy quản lý",
+    "searchManagers": "Tìm kiếm quản lý..."
+  },
+  "auth": {
+    "signIn": "Đăng nhập",
+    "signUp": "Đăng ký",
+    "signOut": "Đăng xuất"
+  },
+  "Dashboard": {
+    "meta_title": "Bảng điều khiển - SiteFlow",
+    "meta_description": "Quản lý các dự án xây dựng của bạn một cách hiệu quả"
+  },
+  "ErrorBoundary": {
+    "title": "Đã xảy ra lỗi",
+    "description": "Một lỗi không mong muốn đã xảy ra. Vui lòng thử làm mới trang hoặc liên hệ hỗ trợ nếu vấn đề vẫn tiếp tục.",
+    "errorDetails": "Chi tiết lỗi",
+    "tryAgain": "Thử lại",
+    "reloadPage": "Tải lại trang"
+  }
+}

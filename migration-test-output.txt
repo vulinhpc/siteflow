@@ -1,0 +1,6 @@
+﻿≡ƒÜÇ Running Vercel migration...
+≡ƒôì Database: postgresql://postgres:***@localhost:5432/siteflow?sslmode=disable
+Γ£à Connected to Vercel Postgres successfully!
+Γä╣∩╕Å Projects table already exists, checking data...
+Γ£à Database already has 3 projects, migration not needed
+Γ£à Migration completed successfully
