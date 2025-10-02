@@ -202,6 +202,12 @@
     "activeProjects": "Dự án đang hoạt động",
     "completedProjects": "Dự án hoàn thành",
     "totalBudget": "Tổng ngân sách",
+    "avgProgress": "Tiến độ TB",
+    "avgProgressDescription": "Tỷ lệ hoàn thành trung bình của dự án",
+    "budgetUsed": "Ngân sách đã dùng",
+    "budgetUsedDescription": "Tổng chi phí so với tổng ngân sách",
+    "overBudgetProjects": "Vượt ngân sách",
+    "overBudgetDescription": "Dự án vượt quá ngân sách",
     "teamMembers": "Thành viên nhóm",
     "createProject": "Tạo dự án",
     "recentProjects": "Dự án gần đây",
@@ -230,12 +236,15 @@
     "showing": "Hiển thị",
     "of": "của",
     "page": "Trang",
+    "searchProjects": "Tìm kiếm dự án...",
     "table": {
       "thumbnail": "Ảnh đại diện",
       "projectName": "Tên dự án",
       "status": "Trạng thái",
       "manager": "Quản lý",
       "budget": "Ngân sách",
+      "investorName": "Nhà đầu tư",
+      "investorPhone": "SĐT nhà đầu tư",
       "startDate": "Ngày bắt đầu",
       "endDate": "Ngày kết thúc"
     }

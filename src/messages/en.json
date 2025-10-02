@@ -213,6 +213,12 @@
     "activeProjects": "Active Projects",
     "completedProjects": "Completed Projects",
     "totalBudget": "Total Budget",
+    "avgProgress": "Avg Progress",
+    "avgProgressDescription": "Average project completion percentage",
+    "budgetUsed": "Budget Used",
+    "budgetUsedDescription": "Total expenses vs total budget",
+    "overBudgetProjects": "Over Budget",
+    "overBudgetDescription": "Projects exceeding their budget",
     "teamMembers": "Team Members",
     "createProject": "Create Project",
     "recentProjects": "Recent Projects",
@@ -242,12 +248,15 @@
     "of": "of",
     "projects": "projects",
     "page": "Page",
+    "searchProjects": "Search projects...",
     "table": {
       "thumbnail": "Thumbnail",
       "projectName": "Project Name",
       "status": "Status",
       "manager": "Manager",
       "budget": "Budget",
+      "investorName": "Investor",
+      "investorPhone": "Investor Phone",
       "startDate": "Start Date",
       "endDate": "End Date"
     }

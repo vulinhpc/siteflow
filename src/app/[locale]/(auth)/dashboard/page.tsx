@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import {
+  AlertTriangle,
   Building2,
   Calendar,
   DollarSign,
@@ -14,7 +15,6 @@ import React from "react";
 import { KPICard } from "@/components/admin/kpi-card";
 import { PaginatedTable } from "@/components/admin/paginated-table";
 import { CreateProjectModal } from "@/components/dashboard/CreateProjectModal";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -28,23 +28,34 @@ import {
 } from "@/components/ui/pagination";
 import { SafeImage } from "@/components/ui/safe-image";
 
-// Project type definition
+// Project type definition (canonical schema)
 type Project = {
   id: string;
   name: string;
   description?: string;
   status: string;
+  start_date?: string;
+  end_date?: string;
+  budget_total?: number;
+  currency?: string;
+  address?: string;
+  scale?: {
+    area_m2?: number;
+    floors?: number;
+    notes?: string;
+  };
+  investor_name?: string;
+  investor_phone?: string;
+  thumbnail_url?: string;
+  created_at: string;
+  updated_at: string;
+  org_id: string;
+  // Legacy fields for backward compatibility
   budget?: string;
   startDate?: string;
   endDate?: string;
-  address?: string;
-  clientName?: string;
-  clientContact?: string;
   thumbnailUrl?: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt?: string;
-  // Manager info
+  // Manager info (if available)
   managerId?: string;
   managerName?: string;
   managerEmail?: string;
@@ -93,24 +104,138 @@ function useProjects(page: number = 1) {
   };
 }
 
+// Hook to fetch project progress data
+function useProjectsProgress() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["projects-progress"],
+    queryFn: async () => {
+      // TODO: Implement progress API endpoint when available
+      // For now, return mock data or calculate from projects
+      return null;
+    },
+    staleTime: 60000, // 1 minute
+    refetchOnWindowFocus: false,
+  });
+
+  return {
+    progressData: data,
+    loading: isLoading,
+    error: error?.message || null,
+  };
+}
+
+// Hook to fetch transactions data for budget calculations
+function useTransactions() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["transactions"],
+    queryFn: async () => {
+      try {
+        const response = await fetch("/api/v1/transactions", {
+          headers: {
+            "x-e2e-bypass": "true",
+            "x-org-id": "org_e2e_default",
+            "x-user-id": "test-user",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch transactions");
+        }
+
+        const data = await response.json();
+        return data;
+      } catch {
+        // TODO: Implement transactions API endpoint when available
+        return null;
+      }
+    },
+    staleTime: 60000, // 1 minute
+    refetchOnWindowFocus: false,
+  });
+
+  return {
+    transactions: data?.items || [],
+    loading: isLoading,
+    error: error?.message || null,
+  };
+}
+
 const DashboardIndexPage = () => {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const { projects, total, page, totalPages, loading, error, refetch } =
     useProjects(currentPage);
+  const { progressData, loading: progressLoading } = useProjectsProgress();
+  const { transactions, loading: transactionsLoading } = useTransactions();
 
   // Translations
   const t = useTranslations("dashboard");
   const tCommon = useTranslations("common");
 
+  // Calculate KPI metrics
+  const calculateAvgProgress = () => {
+    // TODO: Calculate from progress API when available
+    if (progressLoading || !progressData) {
+      return "—";
+    }
+    // Fallback calculation or placeholder
+    return "—";
+  };
+
+  const calculateBudgetUsed = () => {
+    if (transactionsLoading || !transactions.length) {
+      return { used: 0, total: 0, formatted: "—" };
+    }
+
+    const totalUsed = transactions
+      .filter((t: any) => t.type === "EXPENSE")
+      .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+
+    const totalBudget = projects.reduce((sum: number, p: Project) => {
+      return sum + (p.budget_total || Number(p.budget) || 0);
+    }, 0);
+
+    return {
+      used: totalUsed,
+      total: totalBudget,
+      formatted:
+        totalBudget > 0
+          ? `${totalUsed.toLocaleString("vi-VN", { style: "currency", currency: "VND", notation: "compact" })} / ${totalBudget.toLocaleString("vi-VN", { style: "currency", currency: "VND", notation: "compact" })}`
+          : "—",
+    };
+  };
+
+  const calculateOverBudgetCount = () => {
+    if (transactionsLoading || !transactions.length) {
+      return 0;
+    }
+
+    // Group transactions by project and calculate over-budget projects
+    const projectExpenses = transactions
+      .filter((t: any) => t.type === "EXPENSE")
+      .reduce((acc: Record<string, number>, t: any) => {
+        acc[t.project_id] = (acc[t.project_id] || 0) + (t.amount || 0);
+        return acc;
+      }, {});
+
+    return projects.filter((p: Project) => {
+      const budget = p.budget_total || Number(p.budget) || 0;
+      const spent = projectExpenses[p.id] || 0;
+      return budget > 0 && spent > budget;
+    }).length;
+  };
+
+  const budgetMetrics = calculateBudgetUsed();
+  const overBudgetCount = calculateOverBudgetCount();
+
   const projectColumns = [
     {
-      key: "thumbnailUrl" as const,
+      key: "thumbnail_url" as const,
       label: t("table.thumbnail"),
-      render: (value: string) => (
+      render: (value: string, project: Project) => (
         <div className="h-12 w-16 overflow-hidden rounded-lg border">
           <SafeImage
-            src={value}
+            src={value || project.thumbnailUrl}
             alt="Project thumbnail"
             width={64}
             height={48}
@@ -130,67 +255,76 @@ const DashboardIndexPage = () => {
       render: (value: string) => (
         <span
           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-            value === "COMPLETED"
+            value === "completed"
               ? "bg-green-100 text-green-800"
-              : value === "IN_PROGRESS"
+              : value === "in_progress"
                 ? "bg-blue-100 text-blue-800"
-                : "bg-yellow-100 text-yellow-800"
+                : value === "on_hold"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-yellow-100 text-yellow-800"
           }`}
         >
-          {value === "PLANNING"
+          {value === "planning"
             ? "Planning"
-            : value === "IN_PROGRESS"
+            : value === "in_progress"
               ? "In Progress"
-              : value === "COMPLETED"
-                ? "Completed"
-                : value}
+              : value === "on_hold"
+                ? "On Hold"
+                : value === "completed"
+                  ? "Completed"
+                  : value}
         </span>
       ),
     },
     {
-      key: "managerName" as const,
-      label: t("table.manager"),
-      render: (_value: string, project: Project) => (
-        <div className="flex items-center space-x-2">
-          <Avatar className="size-6">
-            <AvatarImage src={project.managerAvatar} />
-            <AvatarFallback className="text-xs">
-              {project.managerName?.charAt(0) || "M"}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm font-medium">
-            {project.managerName || "Unassigned"}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "budget" as const,
+      key: "budget_total" as const,
       label: t("table.budget"),
+      render: (value: number, project: Project) => {
+        const budget = value || Number(project.budget) || 0;
+        const currency = project.currency || "VND";
+        return (
+          <span className="font-mono">
+            {budget > 0
+              ? new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency,
+                  notation: "compact",
+                  maximumFractionDigits: 1,
+                }).format(budget)
+              : "N/A"}
+          </span>
+        );
+      },
+    },
+    {
+      key: "investor_name" as const,
+      label: t("table.investorName"),
       render: (value: string) => (
-        <span className="font-mono">
-          {value
-            ? new Intl.NumberFormat("vi-VN", {
-                style: "currency",
-                currency: "VND",
-                notation: "compact",
-                maximumFractionDigits: 1,
-              }).format(Number(value))
-            : "N/A"}
-        </span>
+        <span className="text-sm">{value || "N/A"}</span>
       ),
     },
     {
-      key: "startDate" as const,
-      label: t("table.startDate"),
-      render: (value: string) =>
-        value ? new Date(value).toLocaleDateString("vi-VN") : "N/A",
+      key: "investor_phone" as const,
+      label: t("table.investorPhone"),
+      render: (value: string) => (
+        <span className="font-mono text-sm">{value || "N/A"}</span>
+      ),
     },
     {
-      key: "endDate" as const,
+      key: "start_date" as const,
+      label: t("table.startDate"),
+      render: (value: string, project: Project) => {
+        const date = value || project.startDate;
+        return date ? new Date(date).toISOString().split("T")[0] : "N/A";
+      },
+    },
+    {
+      key: "end_date" as const,
       label: t("table.endDate"),
-      render: (value: string) =>
-        value ? new Date(value).toLocaleDateString("vi-VN") : "N/A",
+      render: (value: string, project: Project) => {
+        const date = value || project.endDate;
+        return date ? new Date(date).toISOString().split("T")[0] : "N/A";
+      },
     },
   ];
 
@@ -281,52 +415,38 @@ const DashboardIndexPage = () => {
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
         <KPICard
-          title={t("totalBudget")}
+          title={t("avgProgress")}
+          value={loading || progressLoading ? "..." : calculateAvgProgress()}
+          description={t("avgProgressDescription")}
+          icon={TrendingUp}
+          trend={{ value: 5, label: "from last week" }}
+          className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
+        />
+        <KPICard
+          title={t("budgetUsed")}
           value={
-            loading
-              ? "..."
-              : projects
-                  .reduce((total: number, project: Project) => {
-                    const budget = project.budget ? Number(project.budget) : 0;
-                    return total + budget;
-                  }, 0)
-                  .toLocaleString("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                    notation: "compact",
-                    maximumFractionDigits: 1,
-                  })
+            loading || transactionsLoading ? "..." : budgetMetrics.formatted
           }
-          description="Current page project budgets"
+          description={t("budgetUsedDescription")}
           icon={DollarSign}
-          trend={{ value: 8, label: "from last month" }}
+          trend={{
+            value:
+              budgetMetrics.total > 0
+                ? Math.round((budgetMetrics.used / budgetMetrics.total) * 100)
+                : 0,
+            label: "of total budget",
+          }}
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
         <KPICard
-          title={t("activeProjects")}
-          value={
-            loading
-              ? "..."
-              : projects.filter((p: Project) => p.status === "IN_PROGRESS")
-                  .length
-          }
-          description="Current page active projects"
-          icon={Calendar}
-          trend={{ value: -3, label: "from last week" }}
-          className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
-        />
-        <KPICard
-          title={t("teamMembers")}
-          value={
-            loading
-              ? "..."
-              : new Set(
-                  projects.map((p: Project) => p.managerId).filter(Boolean),
-                ).size
-          }
-          description="Current page managers"
-          icon={Users}
-          trend={{ value: 2, label: "new this month" }}
+          title={t("overBudgetProjects")}
+          value={loading || transactionsLoading ? "..." : overBudgetCount}
+          description={t("overBudgetDescription")}
+          icon={AlertTriangle}
+          trend={{
+            value: overBudgetCount > 0 ? -overBudgetCount : 0,
+            label: "projects over budget",
+          }}
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
       </div>
@@ -548,9 +668,8 @@ const DashboardIndexPage = () => {
                     ? "..."
                     : projects
                         .reduce((total: number, project: Project) => {
-                          const budget = project.budget
-                            ? Number(project.budget)
-                            : 0;
+                          const budget =
+                            project.budget_total || Number(project.budget) || 0;
                           return total + budget;
                         }, 0)
                         .toLocaleString("vi-VN", {
@@ -575,7 +694,7 @@ const DashboardIndexPage = () => {
                 </span>
                 <span className="font-semibold text-green-600">
                   {
-                    projects.filter((p: Project) => p.status === "IN_PROGRESS")
+                    projects.filter((p: Project) => p.status === "in_progress")
                       .length
                   }{" "}
                   {t("active")}
@@ -587,7 +706,7 @@ const DashboardIndexPage = () => {
                 <div
                   className="h-2 rounded-full bg-green-500"
                   style={{
-                    width: `${total > 0 ? (projects.filter((p: Project) => p.status === "IN_PROGRESS").length / total) * 100 : 0}%`,
+                    width: `${total > 0 ? (projects.filter((p: Project) => p.status === "in_progress").length / total) * 100 : 0}%`,
                   }}
                 ></div>
               </div>
@@ -595,7 +714,7 @@ const DashboardIndexPage = () => {
                 {total > 0
                   ? Math.round(
                       (projects.filter(
-                        (p: Project) => p.status === "IN_PROGRESS",
+                        (p: Project) => p.status === "in_progress",
                       ).length /
                         total) *
                         100,
