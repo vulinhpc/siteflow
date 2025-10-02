@@ -2,7 +2,7 @@
 
 import { useInfiniteQuery } from '@tanstack/react-query';
 
-export interface ProjectsFilters {
+export type ProjectsFilters = {
   q?: string;
   status?: string[];
   manager?: string;
@@ -10,9 +10,9 @@ export interface ProjectsFilters {
   start_to?: string;
   sort?: 'updatedAt' | 'name' | 'progress_pct' | 'budget_used_pct';
   order?: 'asc' | 'desc';
-}
+};
 
-export interface Project {
+export type Project = {
   id: string;
   name: string;
   status: 'planning' | 'in_progress' | 'on_hold' | 'completed';
@@ -38,13 +38,13 @@ export interface Project {
   scale?: any;
   investor_name?: string;
   investor_phone?: string;
-}
+};
 
-export interface ProjectsResponse {
+export type ProjectsResponse = {
   items: Project[];
   nextCursor?: string;
   total: number;
-}
+};
 
 async function fetchProjects(
   filters: ProjectsFilters,
@@ -52,19 +52,33 @@ async function fetchProjects(
   limit = 20,
 ): Promise<ProjectsResponse> {
   const params = new URLSearchParams();
-  
-  if (cursor) params.set('cursor', cursor);
+
+  if (cursor) {
+ params.set('cursor', cursor);
+}
   params.set('limit', limit.toString());
-  
-  if (filters.q) params.set('q', filters.q);
+
+  if (filters.q) {
+ params.set('q', filters.q);
+}
   if (filters.status && filters.status.length > 0) {
     filters.status.forEach(status => params.append('status', status));
   }
-  if (filters.manager) params.set('manager', filters.manager);
-  if (filters.start_from) params.set('start_from', filters.start_from);
-  if (filters.start_to) params.set('start_to', filters.start_to);
-  if (filters.sort) params.set('sort', filters.sort);
-  if (filters.order) params.set('order', filters.order);
+  if (filters.manager) {
+ params.set('manager', filters.manager);
+}
+  if (filters.start_from) {
+ params.set('start_from', filters.start_from);
+}
+  if (filters.start_to) {
+ params.set('start_to', filters.start_to);
+}
+  if (filters.sort) {
+ params.set('sort', filters.sort);
+}
+  if (filters.order) {
+ params.set('order', filters.order);
+}
 
   const response = await fetch(`/api/v1/projects?${params.toString()}`, {
     headers: {
@@ -82,7 +96,6 @@ async function fetchProjects(
 }
 
 export function useProjectsQuery(filters: ProjectsFilters = {}, limit = 20) {
-  
   // Create a stable key for React Query
   const queryKey = ['projects', {
     q: filters.q,
@@ -110,12 +123,12 @@ export function useProjectsQuery(filters: ProjectsFilters = {}, limit = 20) {
 // Hook for KPI calculations
 export function useProjectsKPI() {
   const { data, isLoading, error } = useProjectsQuery({}, 100); // Get more items for KPI
-  
+
   const allProjects = data?.pages?.flatMap((page: any) => page.items) || [];
-  
+
   const kpi = {
     totalProjects: allProjects.length,
-    avgProgress: allProjects.length > 0 
+    avgProgress: allProjects.length > 0
       ? Math.round(allProjects.reduce((sum: number, p: Project) => sum + p.progress_pct, 0) / allProjects.length)
       : 0,
     budgetUsed: allProjects.reduce((sum: number, p: Project) => sum + p.budget_used, 0),

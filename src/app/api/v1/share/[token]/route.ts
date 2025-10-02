@@ -1,15 +1,15 @@
-import { and, eq, isNull } from "drizzle-orm";
-import type { NextRequest } from "next/server";
+import { and, eq, isNull } from 'drizzle-orm';
+import type { NextRequest } from 'next/server';
 
 import {
   dailyLogsSchema,
   projectsSchema,
   shareLinksSchema,
-} from "@/models/Schema";
+} from '@/models/Schema';
 
 // Lazy load database to avoid connection during build time
 async function getDb() {
-  const { db } = await import("@/db");
+  const { db } = await import('@/db');
   return db;
 }
 
@@ -37,15 +37,15 @@ export async function GET(
     if (shareLink.length === 0) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/not-found",
-          title: "Share Link Not Found",
+          type: 'https://siteflow.app/errors/not-found',
+          title: 'Share Link Not Found',
           status: 404,
-          detail: "Share link not found or expired",
+          detail: 'Share link not found or expired',
           instance: req.url,
         }),
         {
           status: 404,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -56,15 +56,15 @@ export async function GET(
     if (linkData.expiresAt && new Date() > linkData.expiresAt) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/expired",
-          title: "Share Link Expired",
+          type: 'https://siteflow.app/errors/expired',
+          title: 'Share Link Expired',
           status: 410,
-          detail: "This share link has expired",
+          detail: 'This share link has expired',
           instance: req.url,
         }),
         {
           status: 410,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -84,15 +84,15 @@ export async function GET(
     if (project.length === 0) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/not-found",
-          title: "Project Not Found",
+          type: 'https://siteflow.app/errors/not-found',
+          title: 'Project Not Found',
           status: 404,
-          detail: "Associated project not found",
+          detail: 'Associated project not found',
           instance: req.url,
         }),
         {
           status: 404,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -106,7 +106,7 @@ export async function GET(
       .where(
         and(
           eq(dailyLogsSchema.projectId, linkData.projectId),
-          eq(dailyLogsSchema.status, "APPROVED"),
+          eq(dailyLogsSchema.status, 'APPROVED'),
           isNull(dailyLogsSchema.deletedAt),
         ),
       )
@@ -117,8 +117,8 @@ export async function GET(
       id: projectData.id,
       name: projectData.name,
       status: projectData.status,
-      start_date: projectData.startDate?.toISOString().split("T")[0],
-      end_date: projectData.endDate?.toISOString().split("T")[0] || null,
+      start_date: projectData.startDate?.toISOString().split('T')[0],
+      end_date: projectData.endDate?.toISOString().split('T')[0] || null,
       description: projectData.description,
       thumbnail_url: projectData.thumbnailUrl,
       address: projectData.address,
@@ -155,8 +155,8 @@ export async function GET(
 
     // Calculate progress (simplified - would need categories/tasks for full calculation)
     const totalLogs = formattedLogs.length;
-    const progress =
-      totalLogs > 0 ? Math.round((totalLogs / (totalLogs + 5)) * 100) : 0; // Simplified calculation
+    const progress
+      = totalLogs > 0 ? Math.round((totalLogs / (totalLogs + 5)) * 100) : 0; // Simplified calculation
 
     return new Response(
       JSON.stringify({
@@ -177,27 +177,27 @@ export async function GET(
       {
         status: 200,
         headers: {
-          "content-type": "application/json",
+          'content-type': 'application/json',
           // Add CORS headers for public access
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET",
-          "Access-Control-Allow-Headers": "Content-Type",
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET',
+          'Access-Control-Allow-Headers': 'Content-Type',
         },
       },
     );
   } catch (error) {
-    console.error("Error fetching share data:", error);
+    console.error('Error fetching share data:', error);
     return new Response(
       JSON.stringify({
-        type: "https://siteflow.app/errors/internal-server-error",
-        title: "Internal Server Error",
+        type: 'https://siteflow.app/errors/internal-server-error',
+        title: 'Internal Server Error',
         status: 500,
-        detail: "Failed to fetch share data",
+        detail: 'Failed to fetch share data',
         instance: req.url,
       }),
       {
         status: 500,
-        headers: { "content-type": "application/problem+json" },
+        headers: { 'content-type': 'application/problem+json' },
       },
     );
   }

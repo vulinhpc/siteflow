@@ -4,9 +4,9 @@ import { useState } from 'react';
 
 import CreateProjectModal from '@/components/dashboard/CreateProjectModal';
 
+import { ProjectsDataTable } from './_components/ProjectsDataTable';
 import { ProjectsPageHeader } from './_components/ProjectsPageHeader';
 import { ProjectsToolbar } from './_components/ProjectsToolbar';
-import { ProjectsDataTable } from './_components/ProjectsDataTable';
 import type { ProjectsFilters } from './_components/useProjectsQuery';
 
 export default function ProjectsPage() {
@@ -24,28 +24,28 @@ export default function ProjectsPage() {
     // TODO: Implement actual project creation API call
     // For now, just close the modal and refresh the data
     setIsCreateModalOpen(false);
-    
+
     // Trigger a refetch by updating filters slightly
     setFilters(prev => ({ ...prev }));
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
+    <div className="container mx-auto space-y-8 p-6">
       {/* Page Header with KPI Cards */}
       <ProjectsPageHeader />
-      
+
       {/* Toolbar with Search, Filters, and Actions */}
-      <ProjectsToolbar 
+      <ProjectsToolbar
         filters={filters}
         onFiltersChange={setFilters}
         onCreateProject={handleCreateProject}
       />
-      
+
       {/* Data Table */}
       <ProjectsDataTable filters={filters} />
-      
+
       {/* Create Project Modal */}
-      <CreateProjectModal 
+      <CreateProjectModal
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
         onSubmit={handleProjectCreated}

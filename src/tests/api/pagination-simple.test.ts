@@ -1,4 +1,6 @@
 // Simple pagination test without jest-dom
+import { Buffer } from 'node:buffer';
+
 import { describe, expect, it } from 'vitest';
 
 // Mock data for testing

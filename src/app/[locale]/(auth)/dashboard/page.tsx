@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from '@tanstack/react-query';
 import {
   AlertTriangle,
   Building2,
@@ -8,15 +8,15 @@ import {
   DollarSign,
   TrendingUp,
   Users,
-} from "lucide-react";
-import { useTranslations } from "next-intl";
-import React from "react";
+} from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import React from 'react';
 
-import { KPICard } from "@/components/admin/kpi-card";
-import { PaginatedTable } from "@/components/admin/paginated-table";
-import CreateProjectModal from "@/components/dashboard/CreateProjectModal";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { KPICard } from '@/components/admin/kpi-card';
+import { PaginatedTable } from '@/components/admin/paginated-table';
+import CreateProjectModal from '@/components/dashboard/CreateProjectModal';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Pagination,
   PaginationContent,
@@ -25,8 +25,8 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
-import { SafeImage } from "@/components/ui/safe-image";
+} from '@/components/ui/pagination';
+import { SafeImage } from '@/components/ui/safe-image';
 
 // Project type definition (canonical schema)
 type Project = {
@@ -70,20 +70,20 @@ function useProjects(page: number = 1) {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["projects", page],
+    queryKey: ['projects', page],
     queryFn: async () => {
       const url = `/api/v1/projects?page=${page}&limit=10`;
 
       const response = await fetch(url, {
         headers: {
-          "x-e2e-bypass": "true",
-          "x-org-id": "org_e2e_default",
-          "x-user-id": "test-user",
+          'x-e2e-bypass': 'true',
+          'x-org-id': 'org_e2e_default',
+          'x-user-id': 'test-user',
         },
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch projects");
+        throw new Error('Failed to fetch projects');
       }
 
       const data = await response.json();
@@ -107,7 +107,7 @@ function useProjects(page: number = 1) {
 // Hook to fetch project progress data
 function useProjectsProgress() {
   const { data, isLoading, error } = useQuery({
-    queryKey: ["projects-progress"],
+    queryKey: ['projects-progress'],
     queryFn: async () => {
       // TODO: Implement progress API endpoint when available
       // For now, return mock data or calculate from projects
@@ -127,19 +127,19 @@ function useProjectsProgress() {
 // Hook to fetch transactions data for budget calculations
 function useTransactions() {
   const { data, isLoading, error } = useQuery({
-    queryKey: ["transactions"],
+    queryKey: ['transactions'],
     queryFn: async () => {
       try {
-        const response = await fetch("/api/v1/transactions", {
+        const response = await fetch('/api/v1/transactions', {
           headers: {
-            "x-e2e-bypass": "true",
-            "x-org-id": "org_e2e_default",
-            "x-user-id": "test-user",
+            'x-e2e-bypass': 'true',
+            'x-org-id': 'org_e2e_default',
+            'x-user-id': 'test-user',
           },
         });
 
         if (!response.ok) {
-          throw new Error("Failed to fetch transactions");
+          throw new Error('Failed to fetch transactions');
         }
 
         const data = await response.json();
@@ -163,32 +163,32 @@ function useTransactions() {
 const DashboardIndexPage = () => {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const { projects, total, page, totalPages, loading, error, refetch } =
-    useProjects(currentPage);
+  const { projects, total, page, totalPages, loading, error, refetch }
+    = useProjects(currentPage);
   const { progressData, loading: progressLoading } = useProjectsProgress();
   const { transactions, loading: transactionsLoading } = useTransactions();
 
   // Translations
-  const t = useTranslations("dashboard");
-  const tCommon = useTranslations("common");
+  const t = useTranslations('dashboard');
+  const tCommon = useTranslations('common');
 
   // Calculate KPI metrics
   const calculateAvgProgress = () => {
     // TODO: Calculate from progress API when available
     if (progressLoading || !progressData) {
-      return "—";
+      return '—';
     }
     // Fallback calculation or placeholder
-    return "—";
+    return '—';
   };
 
   const calculateBudgetUsed = () => {
     if (transactionsLoading || !transactions.length) {
-      return { used: 0, total: 0, formatted: "—" };
+      return { used: 0, total: 0, formatted: '—' };
     }
 
     const totalUsed = transactions
-      .filter((t: any) => t.type === "EXPENSE")
+      .filter((t: any) => t.type === 'EXPENSE')
       .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
 
     const totalBudget = projects.reduce((sum: number, p: Project) => {
@@ -200,8 +200,8 @@ const DashboardIndexPage = () => {
       total: totalBudget,
       formatted:
         totalBudget > 0
-          ? `${totalUsed.toLocaleString("vi-VN", { style: "currency", currency: "VND", notation: "compact" })} / ${totalBudget.toLocaleString("vi-VN", { style: "currency", currency: "VND", notation: "compact" })}`
-          : "—",
+          ? `${totalUsed.toLocaleString('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' })} / ${totalBudget.toLocaleString('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' })}`
+          : '—',
     };
   };
 
@@ -212,7 +212,7 @@ const DashboardIndexPage = () => {
 
     // Group transactions by project and calculate over-budget projects
     const projectExpenses = transactions
-      .filter((t: any) => t.type === "EXPENSE")
+      .filter((t: any) => t.type === 'EXPENSE')
       .reduce((acc: Record<string, number>, t: any) => {
         acc[t.project_id] = (acc[t.project_id] || 0) + (t.amount || 0);
         return acc;
@@ -230,8 +230,8 @@ const DashboardIndexPage = () => {
 
   const projectColumns = [
     {
-      key: "thumbnail_url" as const,
-      label: t("table.thumbnail"),
+      key: 'thumbnail_url' as const,
+      label: t('table.thumbnail'),
       render: (value: string, project: Project) => (
         <div className="h-12 w-16 overflow-hidden rounded-lg border">
           <SafeImage
@@ -245,85 +245,85 @@ const DashboardIndexPage = () => {
       ),
     },
     {
-      key: "name" as const,
-      label: t("table.projectName"),
+      key: 'name' as const,
+      label: t('table.projectName'),
       sortable: true,
     },
     {
-      key: "status" as const,
-      label: t("table.status"),
+      key: 'status' as const,
+      label: t('table.status'),
       render: (value: string) => (
         <span
           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-            value === "completed"
-              ? "bg-green-100 text-green-800"
-              : value === "in_progress"
-                ? "bg-blue-100 text-blue-800"
-                : value === "on_hold"
-                  ? "bg-red-100 text-red-800"
-                  : "bg-yellow-100 text-yellow-800"
+            value === 'completed'
+              ? 'bg-green-100 text-green-800'
+              : value === 'in_progress'
+                ? 'bg-blue-100 text-blue-800'
+                : value === 'on_hold'
+                  ? 'bg-red-100 text-red-800'
+                  : 'bg-yellow-100 text-yellow-800'
           }`}
         >
-          {value === "planning"
-            ? "Planning"
-            : value === "in_progress"
-              ? "In Progress"
-              : value === "on_hold"
-                ? "On Hold"
-                : value === "completed"
-                  ? "Completed"
+          {value === 'planning'
+            ? 'Planning'
+            : value === 'in_progress'
+              ? 'In Progress'
+              : value === 'on_hold'
+                ? 'On Hold'
+                : value === 'completed'
+                  ? 'Completed'
                   : value}
         </span>
       ),
     },
     {
-      key: "budget_total" as const,
-      label: t("table.budget"),
+      key: 'budget_total' as const,
+      label: t('table.budget'),
       render: (value: number, project: Project) => {
         const budget = value || Number(project.budget) || 0;
-        const currency = project.currency || "VND";
+        const currency = project.currency || 'VND';
         return (
           <span className="font-mono">
             {budget > 0
-              ? new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
+              ? new Intl.NumberFormat('vi-VN', {
+                  style: 'currency',
                   currency,
-                  notation: "compact",
+                  notation: 'compact',
                   maximumFractionDigits: 1,
                 }).format(budget)
-              : "N/A"}
+              : 'N/A'}
           </span>
         );
       },
     },
     {
-      key: "investor_name" as const,
-      label: t("table.investorName"),
+      key: 'investor_name' as const,
+      label: t('table.investorName'),
       render: (value: string) => (
-        <span className="text-sm">{value || "N/A"}</span>
+        <span className="text-sm">{value || 'N/A'}</span>
       ),
     },
     {
-      key: "investor_phone" as const,
-      label: t("table.investorPhone"),
+      key: 'investor_phone' as const,
+      label: t('table.investorPhone'),
       render: (value: string) => (
-        <span className="font-mono text-sm">{value || "N/A"}</span>
+        <span className="font-mono text-sm">{value || 'N/A'}</span>
       ),
     },
     {
-      key: "start_date" as const,
-      label: t("table.startDate"),
+      key: 'start_date' as const,
+      label: t('table.startDate'),
       render: (value: string, project: Project) => {
         const date = value || project.startDate;
-        return date ? new Date(date).toISOString().split("T")[0] : "N/A";
+        return date ? new Date(date).toISOString().split('T')[0] : 'N/A';
       },
     },
     {
-      key: "end_date" as const,
-      label: t("table.endDate"),
+      key: 'end_date' as const,
+      label: t('table.endDate'),
       render: (value: string, project: Project) => {
         const date = value || project.endDate;
-        return date ? new Date(date).toISOString().split("T")[0] : "N/A";
+        return date ? new Date(date).toISOString().split('T')[0] : 'N/A';
       },
     },
   ];
@@ -353,26 +353,26 @@ const DashboardIndexPage = () => {
     thumbnailUrl?: string;
   }) => {
     try {
-      const response = await fetch("/api/v1/projects", {
-        method: "POST",
+      const response = await fetch('/api/v1/projects', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "x-e2e-bypass": "true",
-          "x-org-id": "org_sample_123",
-          "x-user-id": "user_test_123",
+          'Content-Type': 'application/json',
+          'x-e2e-bypass': 'true',
+          'x-org-id': 'org_sample_123',
+          'x-user-id': 'user_test_123',
         },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to create project");
+        throw new Error(errorData.detail || 'Failed to create project');
       }
 
       await response.json();
       handleRefresh();
     } catch (error) {
-      console.error("Error creating project:", error);
+      console.error('Error creating project:', error);
       throw error;
     }
   };
@@ -390,8 +390,8 @@ const DashboardIndexPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("welcome")}</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('welcome')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -407,45 +407,45 @@ const DashboardIndexPage = () => {
       {/* KPI Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <KPICard
-          title={t("totalProjects")}
-          value={loading ? tCommon("loading") : total}
-          description={t("activeProjects")}
+          title={t('totalProjects')}
+          value={loading ? tCommon('loading') : total}
+          description={t('activeProjects')}
           icon={Building2}
-          trend={{ value: 12, label: "from last month" }}
+          trend={{ value: 12, label: 'from last month' }}
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
         <KPICard
-          title={t("avgProgress")}
-          value={loading || progressLoading ? "..." : calculateAvgProgress()}
-          description={t("avgProgressDescription")}
+          title={t('avgProgress')}
+          value={loading || progressLoading ? '...' : calculateAvgProgress()}
+          description={t('avgProgressDescription')}
           icon={TrendingUp}
-          trend={{ value: 5, label: "from last week" }}
+          trend={{ value: 5, label: 'from last week' }}
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
         <KPICard
-          title={t("budgetUsed")}
+          title={t('budgetUsed')}
           value={
-            loading || transactionsLoading ? "..." : budgetMetrics.formatted
+            loading || transactionsLoading ? '...' : budgetMetrics.formatted
           }
-          description={t("budgetUsedDescription")}
+          description={t('budgetUsedDescription')}
           icon={DollarSign}
           trend={{
             value:
               budgetMetrics.total > 0
                 ? Math.round((budgetMetrics.used / budgetMetrics.total) * 100)
                 : 0,
-            label: "of total budget",
+            label: 'of total budget',
           }}
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
         <KPICard
-          title={t("overBudgetProjects")}
-          value={loading || transactionsLoading ? "..." : overBudgetCount}
-          description={t("overBudgetDescription")}
+          title={t('overBudgetProjects')}
+          value={loading || transactionsLoading ? '...' : overBudgetCount}
+          description={t('overBudgetDescription')}
           icon={AlertTriangle}
           trend={{
             value: overBudgetCount > 0 ? -overBudgetCount : 0,
-            label: "projects over budget",
+            label: 'projects over budget',
           }}
           className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
         />
@@ -456,13 +456,13 @@ const DashboardIndexPage = () => {
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl">{t("recentProjects")}</CardTitle>
+              <CardTitle className="text-xl">{t('recentProjects')}</CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">
-                {t("projectsOverview")}
+                {t('projectsOverview')}
               </p>
             </div>
             <Button variant="outline" size="sm">
-              {t("viewAll")}
+              {t('viewAll')}
             </Button>
           </div>
         </CardHeader>
@@ -472,7 +472,7 @@ const DashboardIndexPage = () => {
               <div className="text-center">
                 <div className="mx-auto mb-2 size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 <p className="text-sm text-muted-foreground">
-                  {t("loadingProjects")}
+                  {t('loadingProjects')}
                 </p>
               </div>
             </div>
@@ -480,7 +480,7 @@ const DashboardIndexPage = () => {
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <p className="mb-2 text-sm text-destructive">
-                  {t("errorLoadingProjects")}
+                  {t('errorLoadingProjects')}
                 </p>
                 <p className="text-xs text-muted-foreground">{error}</p>
               </div>
@@ -490,10 +490,10 @@ const DashboardIndexPage = () => {
               <div className="text-center">
                 <Building2 className="mx-auto mb-2 size-8 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">
-                  {t("noProjectsFound")}
+                  {t('noProjectsFound')}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {t("createFirstProject")}
+                  {t('createFirstProject')}
                 </p>
               </div>
             </div>
@@ -506,7 +506,7 @@ const DashboardIndexPage = () => {
                 onDelete={handleDeleteProject}
                 className="border-0"
                 searchable
-                searchPlaceholder={t("searchProjects")}
+                searchPlaceholder={t('searchProjects')}
                 pageSize={10}
                 showPagination={false} // We handle pagination manually
               />
@@ -519,12 +519,11 @@ const DashboardIndexPage = () => {
                       <PaginationItem>
                         <PaginationPrevious
                           onClick={() =>
-                            handlePageChange(Math.max(1, page - 1))
-                          }
+                            handlePageChange(Math.max(1, page - 1))}
                           className={
                             page === 1
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
+                              ? 'pointer-events-none opacity-50'
+                              : 'cursor-pointer'
                           }
                         />
                       </PaginationItem>
@@ -579,12 +578,11 @@ const DashboardIndexPage = () => {
                       <PaginationItem>
                         <PaginationNext
                           onClick={() =>
-                            handlePageChange(Math.min(totalPages, page + 1))
-                          }
+                            handlePageChange(Math.min(totalPages, page + 1))}
                           className={
                             page === totalPages
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
+                              ? 'pointer-events-none opacity-50'
+                              : 'cursor-pointer'
                           }
                         />
                       </PaginationItem>
@@ -595,8 +593,25 @@ const DashboardIndexPage = () => {
 
               {/* Show current page info */}
               <div className="text-center text-sm text-muted-foreground">
-                {t("showing")} {projects.length} {t("of")} {total}{" "}
-                {t("projects")} ({t("page")} {page} {t("of")} {totalPages})
+                {t('showing')}
+{' '}
+{projects.length}
+{' '}
+{t('of')}
+{' '}
+{total}
+{' '}
+                {t('projects')}
+{' '}
+(
+{t('page')}
+{' '}
+{page}
+{' '}
+{t('of')}
+{' '}
+{totalPages}
+)
               </div>
             </div>
           )}
@@ -609,21 +624,21 @@ const DashboardIndexPage = () => {
           <CardHeader className="pb-4">
             <div className="flex items-center space-x-2">
               <TrendingUp className="size-5 text-primary" />
-              <CardTitle className="text-lg">{t("quickActions")}</CardTitle>
+              <CardTitle className="text-lg">{t('quickActions')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
             <Button variant="outline" className="h-10 w-full justify-start">
               <Calendar className="mr-3 size-4" />
-              {t("addDailyLog")}
+              {t('addDailyLog')}
             </Button>
             <Button variant="outline" className="h-10 w-full justify-start">
               <DollarSign className="mr-3 size-4" />
-              {t("recordExpense")}
+              {t('recordExpense')}
             </Button>
             <Button variant="outline" className="h-10 w-full justify-start">
               <Users className="mr-3 size-4" />
-              {t("manageTeam")}
+              {t('manageTeam')}
             </Button>
           </CardContent>
         </Card>
@@ -632,7 +647,7 @@ const DashboardIndexPage = () => {
           <CardHeader className="pb-4">
             <div className="flex items-center space-x-2">
               <Calendar className="size-5 text-primary" />
-              <CardTitle className="text-lg">{t("recentActivity")}</CardTitle>
+              <CardTitle className="text-lg">{t('recentActivity')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -640,10 +655,10 @@ const DashboardIndexPage = () => {
               <div className="text-center">
                 <Calendar className="mx-auto mb-2 size-8 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">
-                  {t("activityTrackingComingSoon")}
+                  {t('activityTrackingComingSoon')}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {t("realTimeActivityLogs")}
+                  {t('realTimeActivityLogs')}
                 </p>
               </div>
             </div>
@@ -654,50 +669,53 @@ const DashboardIndexPage = () => {
           <CardHeader className="pb-4">
             <div className="flex items-center space-x-2">
               <DollarSign className="size-5 text-primary" />
-              <CardTitle className="text-lg">{t("budgetOverview")}</CardTitle>
+              <CardTitle className="text-lg">{t('budgetOverview')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
-                  {t("totalBudget")}
+                  {t('totalBudget')}
                 </span>
                 <span className="font-semibold">
                   {loading
-                    ? "..."
+                    ? '...'
                     : projects
                         .reduce((total: number, project: Project) => {
-                          const budget =
-                            project.budget_total || Number(project.budget) || 0;
+                          const budget
+                            = project.budget_total || Number(project.budget) || 0;
                           return total + budget;
                         }, 0)
-                        .toLocaleString("vi-VN", {
-                          style: "currency",
-                          currency: "VND",
-                          notation: "compact",
+                        .toLocaleString('vi-VN', {
+                          style: 'currency',
+                          currency: 'VND',
+                          notation: 'compact',
                           maximumFractionDigits: 1,
                         })}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
-                  {t("projects")}
+                  {t('projects')}
                 </span>
                 <span className="font-semibold">
-                  {total} {t("projects")}
+                  {total}
+{' '}
+{t('projects')}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
-                  {t("active")}
+                  {t('active')}
                 </span>
                 <span className="font-semibold text-green-600">
                   {
-                    projects.filter((p: Project) => p.status === "in_progress")
+                    projects.filter((p: Project) => p.status === 'in_progress')
                       .length
-                  }{" "}
-                  {t("active")}
+                  }
+{' '}
+                  {t('active')}
                 </span>
               </div>
             </div>
@@ -706,21 +724,23 @@ const DashboardIndexPage = () => {
                 <div
                   className="h-2 rounded-full bg-green-500"
                   style={{
-                    width: `${total > 0 ? (projects.filter((p: Project) => p.status === "in_progress").length / total) * 100 : 0}%`,
+                    width: `${total > 0 ? (projects.filter((p: Project) => p.status === 'in_progress').length / total) * 100 : 0}%`,
                   }}
-                ></div>
+                >
+                </div>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 {total > 0
                   ? Math.round(
                       (projects.filter(
-                        (p: Project) => p.status === "in_progress",
-                      ).length /
-                        total) *
-                        100,
+                        (p: Project) => p.status === 'in_progress',
+                      ).length
+                      / total)
+                    * 100,
                     )
                   : 0}
-                %{t("projectsActive")}
+                %
+{t('projectsActive')}
               </p>
             </div>
           </CardContent>

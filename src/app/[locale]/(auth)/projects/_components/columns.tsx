@@ -1,7 +1,7 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Eye, Edit, Share, Archive } from 'lucide-react';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Archive, Edit, Eye, MoreHorizontal, Share } from 'lucide-react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 
@@ -22,7 +22,7 @@ import type { Project } from './useProjectsQuery';
 // Status badge component
 function StatusBadge({ status }: { status: Project['status'] }) {
   const t = useTranslations('projects.status');
-  
+
   const variants = {
     planning: 'secondary',
     in_progress: 'default',
@@ -47,10 +47,10 @@ function StatusBadge({ status }: { status: Project['status'] }) {
 // Budget chip component
 function BudgetChip({ project }: { project: Project }) {
   const t = useTranslations('projects.budgetChip');
-  
+
   const isOverBudget = project.budget_used > project.budget_total;
   const isOnBudget = project.budget_used_pct >= 90 && project.budget_used_pct <= 100;
-  
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -69,23 +69,27 @@ function BudgetChip({ project }: { project: Project }) {
               {formatCurrency(project.budget_used)}
             </div>
             <div className="text-xs text-muted-foreground">
-              / {formatCurrency(project.budget_total)}
+              /
+{' '}
+{formatCurrency(project.budget_total)}
             </div>
-            <Badge 
+            <Badge
               variant={isOverBudget ? 'destructive' : isOnBudget ? 'default' : 'secondary'}
               className="text-xs"
             >
-              {isOverBudget 
-                ? t('overBudget') 
-                : isOnBudget 
-                ? t('onBudget') 
-                : t('underBudget')
-              }
+              {isOverBudget
+                ? t('overBudget')
+                : isOnBudget
+                ? t('onBudget')
+                : t('underBudget')}
             </Badge>
           </div>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{project.budget_used_pct.toFixed(1)}% used</p>
+          <p>
+{project.budget_used_pct.toFixed(1)}
+% used
+          </p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -99,26 +103,26 @@ function ActionsDropdown({ project: _ }: { project: Project }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
+        <Button variant="ghost" className="size-8 p-0">
           <span className="sr-only">Open menu</span>
-          <MoreHorizontal className="h-4 w-4" />
+          <MoreHorizontal className="size-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem>
-          <Eye className="mr-2 h-4 w-4" />
+          <Eye className="mr-2 size-4" />
           {t('view')}
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <Edit className="mr-2 h-4 w-4" />
+          <Edit className="mr-2 size-4" />
           {t('edit')}
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <Share className="mr-2 h-4 w-4" />
+          <Share className="mr-2 size-4" />
           {t('share')}
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <Archive className="mr-2 h-4 w-4" />
+          <Archive className="mr-2 size-4" />
           {t('archive')}
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -134,8 +138,9 @@ export function createColumns(): ColumnDef<Project>[] {
       cell: ({ row }) => {
         const project = row.original;
         return (
-          <div className="w-12 h-12 relative rounded-md overflow-hidden bg-muted">
-            {project.thumbnail_url ? (
+          <div className="relative size-12 overflow-hidden rounded-md bg-muted">
+            {project.thumbnail_url
+? (
               <Image
                 src={project.thumbnail_url}
                 alt={project.name}
@@ -143,8 +148,9 @@ export function createColumns(): ColumnDef<Project>[] {
                 className="object-cover"
                 sizes="48px"
               />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+            )
+: (
+              <div className="flex size-full items-center justify-center text-xs text-muted-foreground">
                 No Image
               </div>
             )}
@@ -163,7 +169,7 @@ export function createColumns(): ColumnDef<Project>[] {
           <div className="space-y-1">
             <div className="font-medium" data-testid="project-name">{project.name}</div>
             {project.address && (
-              <div className="text-sm text-muted-foreground line-clamp-1">
+              <div className="line-clamp-1 text-sm text-muted-foreground">
                 {project.address}
               </div>
             )}
@@ -179,15 +185,15 @@ export function createColumns(): ColumnDef<Project>[] {
       cell: ({ row }) => {
         const project = row.original;
         if (!project.manager) {
-          return <span className="text-muted-foreground text-sm">No manager</span>;
+          return <span className="text-sm text-muted-foreground">No manager</span>;
         }
-        
+
         return (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center space-x-2">
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="size-8">
                     <AvatarImage src={project.manager.avatar_url} />
                     <AvatarFallback>
                       {project.manager.name.split(' ').map(n => n[0]).join('').toUpperCase()}
@@ -228,9 +234,12 @@ export function createColumns(): ColumnDef<Project>[] {
       cell: ({ row }) => {
         const project = row.original;
         return (
-          <div className="space-y-2 min-w-[100px]">
+          <div className="min-w-[100px] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">{project.progress_pct}%</span>
+              <span className="text-sm font-medium">
+{project.progress_pct}
+%
+              </span>
             </div>
             <Progress value={project.progress_pct} className="h-2" />
           </div>
@@ -255,7 +264,9 @@ export function createColumns(): ColumnDef<Project>[] {
       cell: ({ row }) => {
         const project = row.original;
         const formatDate = (dateStr?: string) => {
-          if (!dateStr) return '—';
+          if (!dateStr) {
+ return '—';
+}
           return new Intl.DateTimeFormat('vi-VN', {
             day: '2-digit',
             month: '2-digit',
@@ -266,11 +277,13 @@ export function createColumns(): ColumnDef<Project>[] {
         return (
           <div className="space-y-1 text-sm">
             <div>
-              <span className="text-muted-foreground">Start:</span>{' '}
+              <span className="text-muted-foreground">Start:</span>
+{' '}
               {formatDate(project.dates.start_date)}
             </div>
             <div>
-              <span className="text-muted-foreground">End:</span>{' '}
+              <span className="text-muted-foreground">End:</span>
+{' '}
               {formatDate(project.dates.end_date)}
             </div>
           </div>

@@ -1,6 +1,6 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-import { badRequest, unprocessable } from "./errors";
+import { badRequest, unprocessable } from './errors';
 
 export async function parseJson<T extends z.ZodTypeAny>(
   req: Request,
@@ -13,10 +13,10 @@ export async function parseJson<T extends z.ZodTypeAny>(
   } catch (err) {
     if (err instanceof z.ZodError) {
       return {
-        error: unprocessable("Validation failed", { issues: err.issues }),
+        error: unprocessable('Validation failed', { issues: err.issues }),
       } as const;
     }
-    return { error: badRequest("Invalid JSON body") } as const;
+    return { error: badRequest('Invalid JSON body') } as const;
   }
 }
 
@@ -28,9 +28,9 @@ export function parseQuery<T extends z.ZodTypeAny>(req: Request, schema: T) {
   } catch (err) {
     if (err instanceof z.ZodError) {
       return {
-        error: unprocessable("Validation failed", { issues: err.issues }),
+        error: unprocessable('Validation failed', { issues: err.issues }),
       } as const;
     }
-    return { error: badRequest("Invalid query parameters") } as const;
+    return { error: badRequest('Invalid query parameters') } as const;
   }
 }

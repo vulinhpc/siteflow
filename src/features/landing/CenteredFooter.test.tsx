@@ -1,16 +1,16 @@
-import "@testing-library/jest-dom";
+import '@testing-library/jest-dom';
 
-import { render, screen } from "@testing-library/react";
-import { NextIntlClientProvider } from "next-intl";
-import { describe, expect, it } from "vitest";
+import { render, screen } from '@testing-library/react';
+import { NextIntlClientProvider } from 'next-intl';
+import { describe, expect, it } from 'vitest';
 
-import messages from "@/messages/en.json";
+import messages from '@/messages/en.json';
 
-import { CenteredFooter } from "./CenteredFooter";
+import { CenteredFooter } from './CenteredFooter';
 
-describe("CenteredFooter", () => {
-  describe("Render method", () => {
-    it("should have copyright information", () => {
+describe('CenteredFooter', () => {
+  describe('Render method', () => {
+    it('should have copyright information', () => {
       render(
         <NextIntlClientProvider locale="en" messages={messages}>
           <CenteredFooter logo={null} name="" iconList={null} legalLinks={null}>

@@ -1,24 +1,24 @@
-import { and, eq, isNull } from "drizzle-orm";
-import type { NextRequest } from "next/server";
-import { z } from "zod";
+import { and, eq, isNull } from 'drizzle-orm';
+import type { NextRequest } from 'next/server';
+import { z } from 'zod';
 
-import { transactionsSchema } from "@/models/Schema";
+import { transactionsSchema } from '@/models/Schema';
 
 // Lazy load database to avoid connection during build time
 async function getDb() {
-  const { db } = await import("@/db");
+  const { db } = await import('@/db');
   return db;
 }
 
 // Payment update schema
 const updatePaymentSchema = z.object({
-  payment_status: z.enum(["PENDING", "PARTIAL", "PAID"]),
-  paid_amount: z.number().min(0, "Paid amount must be non-negative"),
-  payment_date: z.string().date("Payment date must be a valid date"),
+  payment_status: z.enum(['PENDING', 'PARTIAL', 'PAID']),
+  paid_amount: z.number().min(0, 'Paid amount must be non-negative'),
+  payment_date: z.string().date('Payment date must be a valid date'),
   attachments: z
     .array(
       z.object({
-        url: z.string().url("Attachment URL must be valid"),
+        url: z.string().url('Attachment URL must be valid'),
         filename: z.string().optional(),
       }),
     )
@@ -31,21 +31,21 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    const isE2E = req.headers.get("x-e2e-bypass") === "true";
-    const orgId = req.headers.get("x-org-id") || "org_sample_123";
+    const isE2E = req.headers.get('x-e2e-bypass') === 'true';
+    const orgId = req.headers.get('x-org-id') || 'org_sample_123';
 
     if (!isE2E && !orgId) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/validation",
-          title: "Validation Error",
+          type: 'https://siteflow.app/errors/validation',
+          title: 'Validation Error',
           status: 400,
-          detail: "Organization ID is required",
+          detail: 'Organization ID is required',
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -69,15 +69,15 @@ export async function GET(
     if (transaction.length === 0) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/not-found",
-          title: "Transaction Not Found",
+          type: 'https://siteflow.app/errors/not-found',
+          title: 'Transaction Not Found',
           status: 404,
-          detail: "Transaction not found or access denied",
+          detail: 'Transaction not found or access denied',
           instance: req.url,
         }),
         {
           status: 404,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -112,22 +112,22 @@ export async function GET(
       }),
       {
         status: 200,
-        headers: { "content-type": "application/json" },
+        headers: { 'content-type': 'application/json' },
       },
     );
   } catch (error) {
-    console.error("Error fetching transaction:", error);
+    console.error('Error fetching transaction:', error);
     return new Response(
       JSON.stringify({
-        type: "https://siteflow.app/errors/internal-server-error",
-        title: "Internal Server Error",
+        type: 'https://siteflow.app/errors/internal-server-error',
+        title: 'Internal Server Error',
         status: 500,
-        detail: "Failed to fetch transaction",
+        detail: 'Failed to fetch transaction',
         instance: req.url,
       }),
       {
         status: 500,
-        headers: { "content-type": "application/problem+json" },
+        headers: { 'content-type': 'application/problem+json' },
       },
     );
   }
@@ -139,39 +139,39 @@ export async function PATCH(
   { params }: { params: { id: string } },
 ) {
   try {
-    const isE2E = req.headers.get("x-e2e-bypass") === "true";
-    const orgId = req.headers.get("x-org-id") || "org_sample_123";
-    const userRole = req.headers.get("x-user-role") || "ACCOUNTANT";
+    const isE2E = req.headers.get('x-e2e-bypass') === 'true';
+    const orgId = req.headers.get('x-org-id') || 'org_sample_123';
+    const userRole = req.headers.get('x-user-role') || 'ACCOUNTANT';
 
     if (!isE2E && !orgId) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/validation",
-          title: "Validation Error",
+          type: 'https://siteflow.app/errors/validation',
+          title: 'Validation Error',
           status: 400,
-          detail: "Organization ID is required",
+          detail: 'Organization ID is required',
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
 
     // Only ACCOUNTANT can update payment status to PARTIAL/PAID
-    if (!isE2E && !["ACCOUNTANT", "ADMIN"].includes(userRole)) {
+    if (!isE2E && !['ACCOUNTANT', 'ADMIN'].includes(userRole)) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/forbidden",
-          title: "Forbidden",
+          type: 'https://siteflow.app/errors/forbidden',
+          title: 'Forbidden',
           status: 403,
-          detail: "Only accountants can update payment status",
+          detail: 'Only accountants can update payment status',
           instance: req.url,
         }),
         {
           status: 403,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -184,15 +184,15 @@ export async function PATCH(
     } catch {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/invalid-json",
-          title: "Invalid JSON",
+          type: 'https://siteflow.app/errors/invalid-json',
+          title: 'Invalid JSON',
           status: 400,
-          detail: "Request body must be valid JSON",
+          detail: 'Request body must be valid JSON',
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -202,19 +202,19 @@ export async function PATCH(
     if (!validationResult.success) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/validation",
-          title: "Invalid request body",
+          type: 'https://siteflow.app/errors/validation',
+          title: 'Invalid request body',
           status: 400,
-          detail: "Validation failed",
+          detail: 'Validation failed',
           instance: req.url,
           errors: validationResult.error.errors.reduce((acc: any, err) => {
-            acc[err.path.join(".")] = err.message;
+            acc[err.path.join('.')] = err.message;
             return acc;
           }, {}),
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -238,15 +238,15 @@ export async function PATCH(
     if (existingTransaction.length === 0) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/not-found",
-          title: "Transaction Not Found",
+          type: 'https://siteflow.app/errors/not-found',
+          title: 'Transaction Not Found',
           status: 404,
-          detail: "Transaction not found or access denied",
+          detail: 'Transaction not found or access denied',
           instance: req.url,
         }),
         {
           status: 404,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -292,22 +292,22 @@ export async function PATCH(
       }),
       {
         status: 200,
-        headers: { "content-type": "application/json" },
+        headers: { 'content-type': 'application/json' },
       },
     );
   } catch (error) {
-    console.error("Error updating transaction:", error);
+    console.error('Error updating transaction:', error);
     return new Response(
       JSON.stringify({
-        type: "https://siteflow.app/errors/internal-server-error",
-        title: "Internal Server Error",
+        type: 'https://siteflow.app/errors/internal-server-error',
+        title: 'Internal Server Error',
         status: 500,
-        detail: "Failed to update transaction",
+        detail: 'Failed to update transaction',
         instance: req.url,
       }),
       {
         status: 500,
-        headers: { "content-type": "application/problem+json" },
+        headers: { 'content-type': 'application/problem+json' },
       },
     );
   }

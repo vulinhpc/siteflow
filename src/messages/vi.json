@@ -258,7 +258,7 @@
     "filters": {
       "status": "Trạng thái",
       "manager": "Quản lý",
-      "budget": "Khoảng ngân sách", 
+      "budget": "Khoảng ngân sách",
       "dateRange": "Khoảng thời gian",
       "reset": "Đặt lại bộ lọc",
       "apply": "Áp dụng bộ lọc"
@@ -266,7 +266,7 @@
     "actions": {
       "view": "Xem chi tiết",
       "edit": "Chỉnh sửa dự án",
-      "share": "Sao chép liên kết chia sẻ", 
+      "share": "Sao chép liên kết chia sẻ",
       "archive": "Lưu trữ dự án",
       "create": "Tạo dự án"
     },
@@ -275,7 +275,7 @@
       "project": "Dự án",
       "manager": "Quản lý",
       "status": "Trạng thái",
-      "progress": "Tiến độ", 
+      "progress": "Tiến độ",
       "budget": "Ngân sách",
       "dates": "Thời gian",
       "actions": "Hành động"
@@ -292,7 +292,7 @@
     "kpi": {
       "totalProjects": "Tổng số dự án",
       "activeProjects": "Dự án đang hoạt động",
-      "avgProgress": "Tiến độ TB", 
+      "avgProgress": "Tiến độ TB",
       "totalBudget": "Tổng ngân sách",
       "budgetUsed": "Ngân sách đã dùng",
       "overBudget": "Vượt ngân sách"
@@ -308,7 +308,7 @@
     "onHold": "Tạm dừng",
     "completed": "Hoàn thành",
     "details": "Chi tiết dự án",
-    "description": "Mô tả",
+    "projectDescription": "Mô tả",
     "descriptionPlaceholder": "Nhập mô tả dự án (tùy chọn)",
     "thumbnail": "Hình đại diện dự án",
     "thumbnailUrl": "Hình đại diện dự án",

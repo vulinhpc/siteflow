@@ -1,48 +1,49 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshCw } from "lucide-react";
-import CreateLogForm from "@/components/daily-logs/CreateLogForm";
-import SubmittedList from "@/components/daily-logs/SubmittedList";
-import QCRating from "@/components/daily-logs/QCRating";
+import { RefreshCw } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+
+import CreateLogForm from '@/components/daily-logs/CreateLogForm';
+import QCRating from '@/components/daily-logs/QCRating';
+import SubmittedList from '@/components/daily-logs/SubmittedList';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Mock user role - in real app this would come from auth context/Clerk
 const getUserRole = () => {
   // For demo purposes, cycle through roles every 15 seconds
-  const roles = ["ENGINEER", "PM", "ADMIN"];
+  const roles = ['ENGINEER', 'PM', 'ADMIN'];
   const roleIndex = Math.floor(Date.now() / 15000) % roles.length;
-  return roles[roleIndex] || "ENGINEER";
+  return roles[roleIndex] || 'ENGINEER';
 };
 
 // Mock all logs view for Admin/Owner
 const AllLogsView = () => {
   // const t = useTranslations("dailyLogs"); // TODO: Implement translations
-  
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 border rounded-lg">
-          <h3 className="font-medium text-sm text-muted-foreground">DRAFT</h3>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-lg border p-4">
+          <h3 className="text-sm font-medium text-muted-foreground">DRAFT</h3>
           <p className="text-2xl font-bold">3</p>
         </div>
-        <div className="p-4 border rounded-lg">
-          <h3 className="font-medium text-sm text-muted-foreground">SUBMITTED</h3>
+        <div className="rounded-lg border p-4">
+          <h3 className="text-sm font-medium text-muted-foreground">SUBMITTED</h3>
           <p className="text-2xl font-bold">5</p>
         </div>
-        <div className="p-4 border rounded-lg">
-          <h3 className="font-medium text-sm text-muted-foreground">APPROVED</h3>
+        <div className="rounded-lg border p-4">
+          <h3 className="text-sm font-medium text-muted-foreground">APPROVED</h3>
           <p className="text-2xl font-bold">12</p>
         </div>
-        <div className="p-4 border rounded-lg">
-          <h3 className="font-medium text-sm text-muted-foreground">DECLINED</h3>
+        <div className="rounded-lg border p-4">
+          <h3 className="text-sm font-medium text-muted-foreground">DECLINED</h3>
           <p className="text-2xl font-bold">2</p>
         </div>
       </div>
-      <div className="p-8 text-center border rounded-lg">
-        <h3 className="text-lg font-medium mb-2">All Logs Overview</h3>
+      <div className="rounded-lg border p-8 text-center">
+        <h3 className="mb-2 text-lg font-medium">All Logs Overview</h3>
         <p className="text-muted-foreground">
           Detailed logs management interface for administrators
         </p>
@@ -52,10 +53,10 @@ const AllLogsView = () => {
 };
 
 export default function DailyLogsPage() {
-  const t = useTranslations("dailyLogs");
+  const t = useTranslations('dailyLogs');
   const [refreshKey, setRefreshKey] = useState(0);
-  const [activeTab, setActiveTab] = useState("create");
-  
+  const [activeTab, setActiveTab] = useState('create');
+
   const userRole = getUserRole();
 
   const handleRefresh = () => {
@@ -65,15 +66,15 @@ export default function DailyLogsPage() {
   // Determine visible tabs based on role
   const getVisibleTabs = () => {
     switch (userRole) {
-      case "ENGINEER":
-        return ["create", "submitted"];
-      case "PM":
-        return ["submitted"];
-      case "ADMIN":
-      case "OWNER":
-        return ["create", "submitted", "approved", "all"];
+      case 'ENGINEER':
+        return ['create', 'submitted'];
+      case 'PM':
+        return ['submitted'];
+      case 'ADMIN':
+      case 'OWNER':
+        return ['create', 'submitted', 'approved', 'all'];
       default:
-        return ["create"];
+        return ['create'];
     }
   };
 
@@ -81,9 +82,13 @@ export default function DailyLogsPage() {
 
   // Set default tab based on role
   const getDefaultTab = () => {
-    if (userRole === "PM") return "submitted";
-    if (userRole === "ADMIN" || userRole === "OWNER") return "submitted";
-    return "create";
+    if (userRole === 'PM') {
+ return 'submitted';
+}
+    if (userRole === 'ADMIN' || userRole === 'OWNER') {
+ return 'submitted';
+}
+    return 'create';
   };
 
   // Update active tab if current tab is not visible for role
@@ -92,12 +97,12 @@ export default function DailyLogsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto space-y-6 p-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("subtitle")}</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -105,10 +110,10 @@ export default function DailyLogsPage() {
             size="sm"
             onClick={handleRefresh}
             className="gap-2"
-            aria-label={t("refresh")}
+            aria-label={t('refresh')}
           >
-            <RefreshCw className="h-4 w-4" />
-            {t("refresh")}
+            <RefreshCw className="size-4" />
+            {t('refresh')}
           </Button>
         </div>
       </div>
@@ -116,22 +121,22 @@ export default function DailyLogsPage() {
       {/* Role-based Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          {visibleTabs.includes("create") && (
+          {visibleTabs.includes('create') && (
             <TabsTrigger value="create" className="gap-2">
-              {t("tabs.create")}
+              {t('tabs.create')}
             </TabsTrigger>
           )}
-          {visibleTabs.includes("submitted") && (
+          {visibleTabs.includes('submitted') && (
             <TabsTrigger value="submitted" className="gap-2">
-              {t("tabs.submitted")}
+              {t('tabs.submitted')}
             </TabsTrigger>
           )}
-          {visibleTabs.includes("approved") && (
+          {visibleTabs.includes('approved') && (
             <TabsTrigger value="approved" className="gap-2">
-              {t("tabs.approved")}
+              {t('tabs.approved')}
             </TabsTrigger>
           )}
-          {visibleTabs.includes("all") && (
+          {visibleTabs.includes('all') && (
             <TabsTrigger value="all" className="gap-2">
               All Logs
             </TabsTrigger>
@@ -139,28 +144,28 @@ export default function DailyLogsPage() {
         </TabsList>
 
         {/* Engineer - Create Log Form */}
-        {visibleTabs.includes("create") && (
+        {visibleTabs.includes('create') && (
           <TabsContent value="create" className="space-y-6">
             <CreateLogForm key={refreshKey} userRole={userRole} />
           </TabsContent>
         )}
 
         {/* PM - Submitted Logs for Review */}
-        {visibleTabs.includes("submitted") && (
+        {visibleTabs.includes('submitted') && (
           <TabsContent value="submitted" className="space-y-6">
             <SubmittedList key={refreshKey} userRole={userRole} />
           </TabsContent>
         )}
 
         {/* QC - Approved Logs Rating */}
-        {visibleTabs.includes("approved") && (
+        {visibleTabs.includes('approved') && (
           <TabsContent value="approved" className="space-y-6">
             <QCRating key={refreshKey} userRole={userRole} />
           </TabsContent>
         )}
 
         {/* Admin - All Logs Overview */}
-        {visibleTabs.includes("all") && (
+        {visibleTabs.includes('all') && (
           <TabsContent value="all" className="space-y-6">
             <AllLogsView />
           </TabsContent>
@@ -168,9 +173,19 @@ export default function DailyLogsPage() {
       </Tabs>
 
       {/* Debug Info (remove in production) */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="fixed bottom-4 right-4 bg-black/80 text-white text-xs p-2 rounded">
-          Role: {userRole} | Tab: {activeTab} | Visible: {visibleTabs.join(", ")}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-4 right-4 rounded bg-black/80 p-2 text-xs text-white">
+          Role:
+{' '}
+{userRole}
+{' '}
+| Tab:
+{' '}
+{activeTab}
+{' '}
+| Visible:
+{' '}
+{visibleTabs.join(', ')}
         </div>
       )}
     </div>

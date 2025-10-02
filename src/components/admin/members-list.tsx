@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Crown,
@@ -7,19 +7,19 @@ import {
   Shield,
   User,
   UserPlus,
-} from "lucide-react";
-import React from "react";
+} from 'lucide-react';
+import React from 'react';
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -27,7 +27,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 
 export type Member = {
   id: string;
@@ -58,9 +58,9 @@ const roleIcons = {
 };
 
 const roleColors = {
-  admin: "bg-red-100 text-red-800",
-  moderator: "bg-blue-100 text-blue-800",
-  member: "bg-gray-100 text-gray-800",
+  admin: 'bg-red-100 text-red-800',
+  moderator: 'bg-blue-100 text-blue-800',
+  member: 'bg-gray-100 text-gray-800',
 };
 
 export function MembersList({
@@ -71,19 +71,19 @@ export function MembersList({
   onRoleChange,
   onRemove,
 }: MembersListProps) {
-  const [searchTerm, setSearchTerm] = React.useState("");
+  const [searchTerm, setSearchTerm] = React.useState('');
 
   const filteredMembers = members.filter(
-    (member) =>
-      member.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchTerm.toLowerCase()),
+    member =>
+      member.displayName.toLowerCase().includes(searchTerm.toLowerCase())
+      || member.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "2-digit",
-      day: "2-digit",
-      year: "numeric",
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
     });
   };
 
@@ -114,8 +114,12 @@ export function MembersList({
           <div>
             <CardTitle>Members</CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              {totalCount} member
-              {totalCount !== 1 ? "s" : ""} in your organization
+              {totalCount}
+{' '}
+member
+{totalCount !== 1 ? 's' : ''}
+{' '}
+in your organization
             </p>
           </div>
           <Button onClick={onInvite} className="bg-black hover:bg-gray-800">
@@ -131,7 +135,7 @@ export function MembersList({
           <Input
             placeholder="Search members..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -148,19 +152,21 @@ export function MembersList({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredMembers.length === 0 ? (
+              {filteredMembers.length === 0
+? (
                 <TableRow>
                   <TableCell
                     colSpan={4}
                     className="py-8 text-center text-muted-foreground"
                   >
                     {searchTerm
-                      ? "No members found matching your search."
-                      : "No members found."}
+                      ? 'No members found matching your search.'
+                      : 'No members found.'}
                   </TableCell>
                 </TableRow>
-              ) : (
-                filteredMembers.map((member) => (
+              )
+: (
+                filteredMembers.map(member => (
                   <TableRow key={member.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
@@ -202,7 +208,7 @@ export function MembersList({
                       <div className="flex items-center space-x-2">
                         {getRoleIcon(member.role)}
                         <Badge
-                          className={`${roleColors[member.role as keyof typeof roleColors] || "bg-gray-100 text-gray-800"} capitalize`}
+                          className={`${roleColors[member.role as keyof typeof roleColors] || 'bg-gray-100 text-gray-800'} capitalize`}
                         >
                           {member.role}
                         </Badge>
@@ -218,23 +224,21 @@ export function MembersList({
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={() => onRoleChange?.(member.id, "admin")}
+                              onClick={() => onRoleChange?.(member.id, 'admin')}
                             >
                               <Crown className="mr-2 size-4" />
                               Make Admin
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
-                                onRoleChange?.(member.id, "moderator")
-                              }
+                                onRoleChange?.(member.id, 'moderator')}
                             >
                               <Shield className="mr-2 size-4" />
                               Make Moderator
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
-                                onRoleChange?.(member.id, "member")
-                              }
+                                onRoleChange?.(member.id, 'member')}
                             >
                               <User className="mr-2 size-4" />
                               Make Member

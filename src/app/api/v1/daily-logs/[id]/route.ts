@@ -1,36 +1,36 @@
-import { and, eq, isNull } from "drizzle-orm";
-import type { NextRequest } from "next/server";
-import { z } from "zod";
+import { and, eq, isNull } from 'drizzle-orm';
+import type { NextRequest } from 'next/server';
+import { z } from 'zod';
 
-import { dailyLogsSchema } from "@/models/Schema";
+import { dailyLogsSchema } from '@/models/Schema';
 
 // Lazy load database to avoid connection during build time
 async function getDb() {
-  const { db } = await import("@/db");
+  const { db } = await import('@/db');
   return db;
 }
 
 // Action validation schemas
 const submitActionSchema = z.object({
-  action: z.literal("submit"),
+  action: z.literal('submit'),
 });
 
 const approveActionSchema = z.object({
-  action: z.literal("approve"),
-  comment: z.string().min(1, "Comment is required for approval"),
+  action: z.literal('approve'),
+  comment: z.string().min(1, 'Comment is required for approval'),
 });
 
 const declineActionSchema = z.object({
-  action: z.literal("decline"),
-  comment: z.string().min(1, "Comment is required for decline"),
+  action: z.literal('decline'),
+  comment: z.string().min(1, 'Comment is required for decline'),
 });
 
 const qcActionSchema = z.object({
-  action: z.literal("qc"),
-  qc_rating: z.number().min(1).max(5, "QC rating must be between 1 and 5"),
+  action: z.literal('qc'),
+  qc_rating: z.number().min(1).max(5, 'QC rating must be between 1 and 5'),
 });
 
-const actionSchema = z.discriminatedUnion("action", [
+const actionSchema = z.discriminatedUnion('action', [
   submitActionSchema,
   approveActionSchema,
   declineActionSchema,
@@ -43,21 +43,21 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    const isE2E = req.headers.get("x-e2e-bypass") === "true";
-    const orgId = req.headers.get("x-org-id") || "org_sample_123";
+    const isE2E = req.headers.get('x-e2e-bypass') === 'true';
+    const orgId = req.headers.get('x-org-id') || 'org_sample_123';
 
     if (!isE2E && !orgId) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/validation",
-          title: "Validation Error",
+          type: 'https://siteflow.app/errors/validation',
+          title: 'Validation Error',
           status: 400,
-          detail: "Organization ID is required",
+          detail: 'Organization ID is required',
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -81,15 +81,15 @@ export async function GET(
     if (dailyLog.length === 0) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/not-found",
-          title: "Daily Log Not Found",
+          type: 'https://siteflow.app/errors/not-found',
+          title: 'Daily Log Not Found',
           status: 404,
-          detail: "Daily log not found or access denied",
+          detail: 'Daily log not found or access denied',
           instance: req.url,
         }),
         {
           status: 404,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -120,22 +120,22 @@ export async function GET(
       }),
       {
         status: 200,
-        headers: { "content-type": "application/json" },
+        headers: { 'content-type': 'application/json' },
       },
     );
   } catch (error) {
-    console.error("Error fetching daily log:", error);
+    console.error('Error fetching daily log:', error);
     return new Response(
       JSON.stringify({
-        type: "https://siteflow.app/errors/internal-server-error",
-        title: "Internal Server Error",
+        type: 'https://siteflow.app/errors/internal-server-error',
+        title: 'Internal Server Error',
         status: 500,
-        detail: "Failed to fetch daily log",
+        detail: 'Failed to fetch daily log',
         instance: req.url,
       }),
       {
         status: 500,
-        headers: { "content-type": "application/problem+json" },
+        headers: { 'content-type': 'application/problem+json' },
       },
     );
   }
@@ -147,22 +147,22 @@ export async function PATCH(
   { params }: { params: { id: string } },
 ) {
   try {
-    const isE2E = req.headers.get("x-e2e-bypass") === "true";
-    const orgId = req.headers.get("x-org-id") || "org_sample_123";
-    const userRole = req.headers.get("x-user-role") || "ENGINEER";
+    const isE2E = req.headers.get('x-e2e-bypass') === 'true';
+    const orgId = req.headers.get('x-org-id') || 'org_sample_123';
+    const userRole = req.headers.get('x-user-role') || 'ENGINEER';
 
     if (!isE2E && !orgId) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/validation",
-          title: "Validation Error",
+          type: 'https://siteflow.app/errors/validation',
+          title: 'Validation Error',
           status: 400,
-          detail: "Organization ID is required",
+          detail: 'Organization ID is required',
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -175,15 +175,15 @@ export async function PATCH(
     } catch {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/invalid-json",
-          title: "Invalid JSON",
+          type: 'https://siteflow.app/errors/invalid-json',
+          title: 'Invalid JSON',
           status: 400,
-          detail: "Request body must be valid JSON",
+          detail: 'Request body must be valid JSON',
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -193,19 +193,19 @@ export async function PATCH(
     if (!validationResult.success) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/validation",
-          title: "Invalid request body",
+          type: 'https://siteflow.app/errors/validation',
+          title: 'Invalid request body',
           status: 400,
-          detail: "Invalid action or missing required fields",
+          detail: 'Invalid action or missing required fields',
           instance: req.url,
           errors: validationResult.error.errors.reduce((acc: any, err) => {
-            acc[err.path.join(".")] = err.message;
+            acc[err.path.join('.')] = err.message;
             return acc;
           }, {}),
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -229,15 +229,15 @@ export async function PATCH(
     if (existingLog.length === 0) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/not-found",
-          title: "Daily Log Not Found",
+          type: 'https://siteflow.app/errors/not-found',
+          title: 'Daily Log Not Found',
           status: 404,
-          detail: "Daily log not found or access denied",
+          detail: 'Daily log not found or access denied',
           instance: req.url,
         }),
         {
           status: 404,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -248,146 +248,146 @@ export async function PATCH(
     const updateData: any = {};
 
     switch (validatedData.action) {
-      case "submit":
+      case 'submit':
         // Only ENGINEER can submit
-        if (!isE2E && !["ENGINEER", "ADMIN"].includes(userRole)) {
+        if (!isE2E && !['ENGINEER', 'ADMIN'].includes(userRole)) {
           return new Response(
             JSON.stringify({
-              type: "https://siteflow.app/errors/forbidden",
-              title: "Forbidden",
+              type: 'https://siteflow.app/errors/forbidden',
+              title: 'Forbidden',
               status: 403,
-              detail: "Only engineers can submit daily logs",
+              detail: 'Only engineers can submit daily logs',
               instance: req.url,
             }),
             {
               status: 403,
-              headers: { "content-type": "application/problem+json" },
+              headers: { 'content-type': 'application/problem+json' },
             },
           );
         }
         // Can only submit if DRAFT
-        if (currentLog.status !== "DRAFT") {
+        if (currentLog.status !== 'DRAFT') {
           return new Response(
             JSON.stringify({
-              type: "https://siteflow.app/errors/validation",
-              title: "Invalid Status",
+              type: 'https://siteflow.app/errors/validation',
+              title: 'Invalid Status',
               status: 400,
-              detail: "Can only submit logs in DRAFT status",
+              detail: 'Can only submit logs in DRAFT status',
               instance: req.url,
             }),
             {
               status: 400,
-              headers: { "content-type": "application/problem+json" },
+              headers: { 'content-type': 'application/problem+json' },
             },
           );
         }
-        updateData.status = "SUBMITTED";
+        updateData.status = 'SUBMITTED';
         break;
 
-      case "approve":
+      case 'approve':
         // Only PM/SUPERVISOR can approve
-        if (!isE2E && !["PM", "SUPERVISOR", "ADMIN"].includes(userRole)) {
+        if (!isE2E && !['PM', 'SUPERVISOR', 'ADMIN'].includes(userRole)) {
           return new Response(
             JSON.stringify({
-              type: "https://siteflow.app/errors/forbidden",
-              title: "Forbidden",
+              type: 'https://siteflow.app/errors/forbidden',
+              title: 'Forbidden',
               status: 403,
-              detail: "Only PM/Supervisor can approve daily logs",
+              detail: 'Only PM/Supervisor can approve daily logs',
               instance: req.url,
             }),
             {
               status: 403,
-              headers: { "content-type": "application/problem+json" },
+              headers: { 'content-type': 'application/problem+json' },
             },
           );
         }
         // Can only approve if SUBMITTED
-        if (currentLog.status !== "SUBMITTED") {
+        if (currentLog.status !== 'SUBMITTED') {
           return new Response(
             JSON.stringify({
-              type: "https://siteflow.app/errors/validation",
-              title: "Invalid Status",
+              type: 'https://siteflow.app/errors/validation',
+              title: 'Invalid Status',
               status: 400,
-              detail: "Can only approve logs in SUBMITTED status",
+              detail: 'Can only approve logs in SUBMITTED status',
               instance: req.url,
             }),
             {
               status: 400,
-              headers: { "content-type": "application/problem+json" },
+              headers: { 'content-type': 'application/problem+json' },
             },
           );
         }
-        updateData.status = "APPROVED";
+        updateData.status = 'APPROVED';
         updateData.reviewComment = validatedData.comment;
         break;
 
-      case "decline":
+      case 'decline':
         // Only PM/SUPERVISOR can decline
-        if (!isE2E && !["PM", "SUPERVISOR", "ADMIN"].includes(userRole)) {
+        if (!isE2E && !['PM', 'SUPERVISOR', 'ADMIN'].includes(userRole)) {
           return new Response(
             JSON.stringify({
-              type: "https://siteflow.app/errors/forbidden",
-              title: "Forbidden",
+              type: 'https://siteflow.app/errors/forbidden',
+              title: 'Forbidden',
               status: 403,
-              detail: "Only PM/Supervisor can decline daily logs",
+              detail: 'Only PM/Supervisor can decline daily logs',
               instance: req.url,
             }),
             {
               status: 403,
-              headers: { "content-type": "application/problem+json" },
+              headers: { 'content-type': 'application/problem+json' },
             },
           );
         }
         // Can only decline if SUBMITTED
-        if (currentLog.status !== "SUBMITTED") {
+        if (currentLog.status !== 'SUBMITTED') {
           return new Response(
             JSON.stringify({
-              type: "https://siteflow.app/errors/validation",
-              title: "Invalid Status",
+              type: 'https://siteflow.app/errors/validation',
+              title: 'Invalid Status',
               status: 400,
-              detail: "Can only decline logs in SUBMITTED status",
+              detail: 'Can only decline logs in SUBMITTED status',
               instance: req.url,
             }),
             {
               status: 400,
-              headers: { "content-type": "application/problem+json" },
+              headers: { 'content-type': 'application/problem+json' },
             },
           );
         }
-        updateData.status = "DECLINED";
+        updateData.status = 'DECLINED';
         updateData.reviewComment = validatedData.comment;
         break;
 
-      case "qc":
+      case 'qc':
         // Only QC can rate
-        if (!isE2E && !["QC", "ADMIN"].includes(userRole)) {
+        if (!isE2E && !['QC', 'ADMIN'].includes(userRole)) {
           return new Response(
             JSON.stringify({
-              type: "https://siteflow.app/errors/forbidden",
-              title: "Forbidden",
+              type: 'https://siteflow.app/errors/forbidden',
+              title: 'Forbidden',
               status: 403,
-              detail: "Only QC can rate daily logs",
+              detail: 'Only QC can rate daily logs',
               instance: req.url,
             }),
             {
               status: 403,
-              headers: { "content-type": "application/problem+json" },
+              headers: { 'content-type': 'application/problem+json' },
             },
           );
         }
         // Can only rate if APPROVED
-        if (currentLog.status !== "APPROVED") {
+        if (currentLog.status !== 'APPROVED') {
           return new Response(
             JSON.stringify({
-              type: "https://siteflow.app/errors/validation",
-              title: "Invalid Status",
+              type: 'https://siteflow.app/errors/validation',
+              title: 'Invalid Status',
               status: 400,
-              detail: "Can only rate logs in APPROVED status",
+              detail: 'Can only rate logs in APPROVED status',
               instance: req.url,
             }),
             {
               status: 400,
-              headers: { "content-type": "application/problem+json" },
+              headers: { 'content-type': 'application/problem+json' },
             },
           );
         }
@@ -429,22 +429,22 @@ export async function PATCH(
       }),
       {
         status: 200,
-        headers: { "content-type": "application/json" },
+        headers: { 'content-type': 'application/json' },
       },
     );
   } catch (error) {
-    console.error("Error updating daily log:", error);
+    console.error('Error updating daily log:', error);
     return new Response(
       JSON.stringify({
-        type: "https://siteflow.app/errors/internal-server-error",
-        title: "Internal Server Error",
+        type: 'https://siteflow.app/errors/internal-server-error',
+        title: 'Internal Server Error',
         status: 500,
-        detail: "Failed to update daily log",
+        detail: 'Failed to update daily log',
         instance: req.url,
       }),
       {
         status: 500,
-        headers: { "content-type": "application/problem+json" },
+        headers: { 'content-type': 'application/problem+json' },
       },
     );
   }

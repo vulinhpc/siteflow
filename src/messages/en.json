@@ -178,7 +178,7 @@
     "searchPlaceholder": "Search projects by name or address...",
     "filters": {
       "status": "Status",
-      "manager": "Manager", 
+      "manager": "Manager",
       "budget": "Budget Range",
       "dateRange": "Date Range",
       "reset": "Reset Filters",
@@ -186,7 +186,7 @@
     },
     "actions": {
       "view": "View Details",
-      "edit": "Edit Project", 
+      "edit": "Edit Project",
       "share": "Copy Share Link",
       "archive": "Archive Project",
       "create": "Create Project"
@@ -195,7 +195,7 @@
       "thumbnail": "Image",
       "project": "Project",
       "manager": "Manager",
-      "status": "Status", 
+      "status": "Status",
       "progress": "Progress",
       "budget": "Budget",
       "dates": "Timeline",
@@ -212,7 +212,7 @@
     },
     "kpi": {
       "totalProjects": "Total Projects",
-      "activeProjects": "Active Projects", 
+      "activeProjects": "Active Projects",
       "avgProgress": "Avg Progress",
       "totalBudget": "Total Budget",
       "budgetUsed": "Budget Used",
@@ -229,7 +229,7 @@
     "onHold": "On Hold",
     "completed": "Completed",
     "details": "Project Details",
-    "description": "Description",
+    "projectDescription": "Description",
     "descriptionPlaceholder": "Enter project description (optional)",
     "thumbnail": "Project Thumbnail",
     "thumbnailUrl": "Project Thumbnail",
@@ -386,7 +386,7 @@
   },
   "auth": {
     "signIn": "Sign In",
-    "signUp": "Sign Up", 
+    "signUp": "Sign Up",
     "signOut": "Sign Out"
   },
   "header": {

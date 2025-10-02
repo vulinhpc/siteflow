@@ -1,25 +1,25 @@
-import { and, eq, isNull } from "drizzle-orm";
-import type { NextRequest } from "next/server";
-import { z } from "zod";
+import { and, eq, isNull } from 'drizzle-orm';
+import type { NextRequest } from 'next/server';
+import { z } from 'zod';
 
-import { projectsSchema } from "@/models/Schema";
+import { projectsSchema } from '@/models/Schema';
 
 // Lazy load database to avoid connection during build time
 async function getDb() {
-  const { db } = await import("@/db");
+  const { db } = await import('@/db');
   return db;
 }
 
 // Canonical validation schema (partial for updates)
 const updateProjectSchema = z
   .object({
-    name: z.string().min(1, "Project name is required").max(255).optional(),
+    name: z.string().min(1, 'Project name is required').max(255).optional(),
     status: z
-      .enum(["planning", "in_progress", "on_hold", "completed"])
+      .enum(['planning', 'in_progress', 'on_hold', 'completed'])
       .optional(),
-    start_date: z.string().date("Start date must be a valid date").optional(),
-    end_date: z.string().date("End date must be a valid date").optional(),
-    budget_total: z.number().min(0, "Budget must be non-negative").optional(),
+    start_date: z.string().date('Start date must be a valid date').optional(),
+    end_date: z.string().date('End date must be a valid date').optional(),
+    budget_total: z.number().min(0, 'Budget must be non-negative').optional(),
     currency: z.string().optional(),
     address: z.string().optional(),
     scale: z
@@ -32,7 +32,7 @@ const updateProjectSchema = z
     investor_name: z.string().optional(),
     investor_phone: z.string().optional(),
     description: z.string().optional(),
-    thumbnail_url: z.string().url("Thumbnail URL must be valid").optional(),
+    thumbnail_url: z.string().url('Thumbnail URL must be valid').optional(),
   })
   .refine(
     (data) => {
@@ -45,8 +45,8 @@ const updateProjectSchema = z
       return true;
     },
     {
-      message: "Start date must be before or equal to end date",
-      path: ["start_date"],
+      message: 'Start date must be before or equal to end date',
+      path: ['start_date'],
     },
   );
 
@@ -56,21 +56,21 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    const isE2E = req.headers.get("x-e2e-bypass") === "true";
-    const orgId = req.headers.get("x-org-id") || "org_sample_123";
+    const isE2E = req.headers.get('x-e2e-bypass') === 'true';
+    const orgId = req.headers.get('x-org-id') || 'org_sample_123';
 
     if (!isE2E && !orgId) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/validation",
-          title: "Validation Error",
+          type: 'https://siteflow.app/errors/validation',
+          title: 'Validation Error',
           status: 400,
-          detail: "Organization ID is required",
+          detail: 'Organization ID is required',
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -94,15 +94,15 @@ export async function GET(
     if (project.length === 0) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/not-found",
-          title: "Project Not Found",
+          type: 'https://siteflow.app/errors/not-found',
+          title: 'Project Not Found',
           status: 404,
-          detail: "Project not found or access denied",
+          detail: 'Project not found or access denied',
           instance: req.url,
         }),
         {
           status: 404,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -114,12 +114,12 @@ export async function GET(
       id: projectData.id,
       name: projectData.name,
       status: projectData.status,
-      start_date: projectData.startDate ? (typeof projectData.startDate === 'string' ? projectData.startDate : projectData.startDate.toISOString().split("T")[0]) : null,
-      end_date: projectData.endDate ? (typeof projectData.endDate === 'string' ? projectData.endDate : projectData.endDate.toISOString().split("T")[0]) : null,
+      start_date: projectData.startDate ? (typeof projectData.startDate === 'string' ? projectData.startDate : projectData.startDate.toISOString().split('T')[0]) : null,
+      end_date: projectData.endDate ? (typeof projectData.endDate === 'string' ? projectData.endDate : projectData.endDate.toISOString().split('T')[0]) : null,
       budget_total: projectData.budgetTotal
         ? Number(projectData.budgetTotal)
         : null,
-      currency: projectData.currency || "VND",
+      currency: projectData.currency || 'VND',
       description: projectData.description,
       thumbnail_url: projectData.thumbnailUrl,
       address: projectData.address,
@@ -138,22 +138,22 @@ export async function GET(
       }),
       {
         status: 200,
-        headers: { "content-type": "application/json" },
+        headers: { 'content-type': 'application/json' },
       },
     );
   } catch (error) {
-    console.error("Error fetching project:", error);
+    console.error('Error fetching project:', error);
     return new Response(
       JSON.stringify({
-        type: "https://siteflow.app/errors/internal-server-error",
-        title: "Internal Server Error",
+        type: 'https://siteflow.app/errors/internal-server-error',
+        title: 'Internal Server Error',
         status: 500,
-        detail: "Failed to fetch project",
+        detail: 'Failed to fetch project',
         instance: req.url,
       }),
       {
         status: 500,
-        headers: { "content-type": "application/problem+json" },
+        headers: { 'content-type': 'application/problem+json' },
       },
     );
   }
@@ -165,21 +165,21 @@ export async function PATCH(
   { params }: { params: { id: string } },
 ) {
   try {
-    const isE2E = req.headers.get("x-e2e-bypass") === "true";
-    const orgId = req.headers.get("x-org-id") || "org_sample_123";
+    const isE2E = req.headers.get('x-e2e-bypass') === 'true';
+    const orgId = req.headers.get('x-org-id') || 'org_sample_123';
 
     if (!isE2E && !orgId) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/validation",
-          title: "Validation Error",
+          type: 'https://siteflow.app/errors/validation',
+          title: 'Validation Error',
           status: 400,
-          detail: "Organization ID is required",
+          detail: 'Organization ID is required',
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -192,15 +192,15 @@ export async function PATCH(
     } catch {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/invalid-json",
-          title: "Invalid JSON",
+          type: 'https://siteflow.app/errors/invalid-json',
+          title: 'Invalid JSON',
           status: 400,
-          detail: "Request body must be valid JSON",
+          detail: 'Request body must be valid JSON',
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -210,19 +210,19 @@ export async function PATCH(
     if (!validationResult.success) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/validation",
-          title: "Invalid request body",
+          type: 'https://siteflow.app/errors/validation',
+          title: 'Invalid request body',
           status: 400,
-          detail: "Validation failed",
+          detail: 'Validation failed',
           instance: req.url,
           errors: validationResult.error.errors.reduce((acc: any, err) => {
-            acc[err.path.join(".")] = err.message;
+            acc[err.path.join('.')] = err.message;
             return acc;
           }, {}),
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -246,15 +246,15 @@ export async function PATCH(
     if (existingProject.length === 0) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/not-found",
-          title: "Project Not Found",
+          type: 'https://siteflow.app/errors/not-found',
+          title: 'Project Not Found',
           status: 404,
-          detail: "Project not found or access denied",
+          detail: 'Project not found or access denied',
           instance: req.url,
         }),
         {
           status: 404,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -313,8 +313,8 @@ export async function PATCH(
       id: updatedProject.id,
       name: updatedProject.name,
       status: updatedProject.status,
-      start_date: updatedProject.startDate ? (typeof updatedProject.startDate === 'string' ? updatedProject.startDate : updatedProject.startDate.toISOString().split("T")[0]) : null,
-      end_date: updatedProject.endDate ? (typeof updatedProject.endDate === 'string' ? updatedProject.endDate : updatedProject.endDate.toISOString().split("T")[0]) : null,
+      start_date: updatedProject.startDate ? (typeof updatedProject.startDate === 'string' ? updatedProject.startDate : updatedProject.startDate.toISOString().split('T')[0]) : null,
+      end_date: updatedProject.endDate ? (typeof updatedProject.endDate === 'string' ? updatedProject.endDate : updatedProject.endDate.toISOString().split('T')[0]) : null,
       budget_total: updatedProject.budgetTotal
         ? Number(updatedProject.budgetTotal)
         : null,
@@ -337,22 +337,22 @@ export async function PATCH(
       }),
       {
         status: 200,
-        headers: { "content-type": "application/json" },
+        headers: { 'content-type': 'application/json' },
       },
     );
   } catch (error) {
-    console.error("Error updating project:", error);
+    console.error('Error updating project:', error);
     return new Response(
       JSON.stringify({
-        type: "https://siteflow.app/errors/internal-server-error",
-        title: "Internal Server Error",
+        type: 'https://siteflow.app/errors/internal-server-error',
+        title: 'Internal Server Error',
         status: 500,
-        detail: "Failed to update project",
+        detail: 'Failed to update project',
         instance: req.url,
       }),
       {
         status: 500,
-        headers: { "content-type": "application/problem+json" },
+        headers: { 'content-type': 'application/problem+json' },
       },
     );
   }

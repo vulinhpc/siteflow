@@ -5,6 +5,6 @@ export function useToast() {
       // TODO: Implement actual toast functionality
       // For now, silently handle toast calls
       void options;
-    }
+    },
   };
 }

@@ -1,33 +1,33 @@
-import "@/styles/global.css";
+import '@/styles/global.css';
 
-import { ClerkProvider } from "@clerk/nextjs";
-import type { Metadata } from "next";
-import { NextIntlClientProvider, useMessages } from "next-intl";
-import { unstable_setRequestLocale } from "next-intl/server";
-import { ThemeProvider } from "next-themes";
+import { ClerkProvider } from '@clerk/nextjs';
+import type { Metadata } from 'next';
+import { NextIntlClientProvider, useMessages } from 'next-intl';
+import { unstable_setRequestLocale } from 'next-intl/server';
+import { ThemeProvider } from 'next-themes';
 
-import { DemoBadge } from "@/components/DemoBadge";
-import { AxeProvider } from "@/components/providers/axe-provider";
-import { QueryProvider } from "@/providers/query-client-provider";
-import { AllLocales } from "@/utils/AppConfig";
+import { DemoBadge } from '@/components/DemoBadge';
+import { AxeProvider } from '@/components/providers/axe-provider';
+import { QueryProvider } from '@/providers/query-client-provider';
+import { AllLocales } from '@/utils/AppConfig';
 
 export const metadata: Metadata = {
-  title: "SiteFlow - Construction Project Management",
-  description: "Professional construction project management platform",
+  title: 'SiteFlow - Construction Project Management',
+  description: 'Professional construction project management platform',
   icons: {
     icon: [
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon.ico", sizes: "any" },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' },
     ],
     apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
   },
 };
 
 export function generateStaticParams() {
-  return AllLocales.map((locale) => ({ locale }));
+  return AllLocales.map(locale => ({ locale }));
 }
 
 export default function RootLayout(props: {
@@ -48,7 +48,7 @@ export default function RootLayout(props: {
     <ClerkProvider
       appearance={{
         variables: {
-          colorPrimary: "#000000",
+          colorPrimary: '#000000',
         },
       }}
     >

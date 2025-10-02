@@ -1,23 +1,23 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
-import type { NextRequest } from "next/server";
-import { z } from "zod";
+import { and, desc, eq, isNull } from 'drizzle-orm';
+import type { NextRequest } from 'next/server';
+import { z } from 'zod';
 
-import { shareLinksSchema } from "@/models/Schema";
+import { shareLinksSchema } from '@/models/Schema';
 
 // Lazy load database to avoid connection during build time
 async function getDb() {
-  const { db } = await import("@/db");
+  const { db } = await import('@/db');
   return db;
 }
 
 // Generate random token
 function generateShareToken(): string {
-  return crypto.randomUUID().replace(/-/g, "").substring(0, 16);
+  return crypto.randomUUID().replace(/-/g, '').substring(0, 16);
 }
 
 // Canonical validation schema for creating share links
 const createShareLinkSchema = z.object({
-  project_id: z.string().uuid("Project ID must be a valid UUID"),
+  project_id: z.string().uuid('Project ID must be a valid UUID'),
   hide_finance: z.boolean().default(false),
   show_investor_contact: z.boolean().default(false),
   expires_at: z.string().datetime().optional(),
@@ -28,33 +28,33 @@ const createShareLinkSchema = z.object({
 // GET /api/v1/share-links
 export async function GET(req: NextRequest) {
   try {
-    const isE2E = req.headers.get("x-e2e-bypass") === "true";
-    const orgId = req.headers.get("x-org-id") || "org_sample_123";
+    const isE2E = req.headers.get('x-e2e-bypass') === 'true';
+    const orgId = req.headers.get('x-org-id') || 'org_sample_123';
 
     if (!isE2E && !orgId) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/validation",
-          title: "Validation Error",
+          type: 'https://siteflow.app/errors/validation',
+          title: 'Validation Error',
           status: 400,
-          detail: "Organization ID is required",
+          detail: 'Organization ID is required',
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
 
     const url = new URL(req.url);
-    const projectId = url.searchParams.get("project_id");
+    const projectId = url.searchParams.get('project_id');
     const limit = Math.min(
-      Number.parseInt(url.searchParams.get("limit") || "10"),
+      Number.parseInt(url.searchParams.get('limit') || '10'),
       100,
     );
     const page = Math.max(
-      Number.parseInt(url.searchParams.get("page") || "1"),
+      Number.parseInt(url.searchParams.get('page') || '1'),
       1,
     );
 
@@ -102,22 +102,22 @@ export async function GET(req: NextRequest) {
       }),
       {
         status: 200,
-        headers: { "content-type": "application/json" },
+        headers: { 'content-type': 'application/json' },
       },
     );
   } catch (error) {
-    console.error("Error fetching share links:", error);
+    console.error('Error fetching share links:', error);
     return new Response(
       JSON.stringify({
-        type: "https://siteflow.app/errors/internal-server-error",
-        title: "Internal Server Error",
+        type: 'https://siteflow.app/errors/internal-server-error',
+        title: 'Internal Server Error',
         status: 500,
-        detail: "Failed to fetch share links",
+        detail: 'Failed to fetch share links',
         instance: req.url,
       }),
       {
         status: 500,
-        headers: { "content-type": "application/problem+json" },
+        headers: { 'content-type': 'application/problem+json' },
       },
     );
   }
@@ -126,40 +126,40 @@ export async function GET(req: NextRequest) {
 // POST /api/v1/share-links
 export async function POST(req: NextRequest) {
   try {
-    const isE2E = req.headers.get("x-e2e-bypass") === "true";
-    const orgId = req.headers.get("x-org-id") || "org_sample_123";
-    const userId = req.headers.get("x-user-id") || "user_sample_123";
-    const userRole = req.headers.get("x-user-role") || "ADMIN";
+    const isE2E = req.headers.get('x-e2e-bypass') === 'true';
+    const orgId = req.headers.get('x-org-id') || 'org_sample_123';
+    const userId = req.headers.get('x-user-id') || 'user_sample_123';
+    const userRole = req.headers.get('x-user-role') || 'ADMIN';
 
     if (!isE2E && !orgId) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/validation",
-          title: "Validation Error",
+          type: 'https://siteflow.app/errors/validation',
+          title: 'Validation Error',
           status: 400,
-          detail: "Organization ID is required",
+          detail: 'Organization ID is required',
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
 
     // Check role permissions (PM, ADMIN can create share links)
-    if (!isE2E && !["PM", "ADMIN"].includes(userRole)) {
+    if (!isE2E && !['PM', 'ADMIN'].includes(userRole)) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/forbidden",
-          title: "Forbidden",
+          type: 'https://siteflow.app/errors/forbidden',
+          title: 'Forbidden',
           status: 403,
-          detail: "Only PM and Admin can create share links",
+          detail: 'Only PM and Admin can create share links',
           instance: req.url,
         }),
         {
           status: 403,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -170,15 +170,15 @@ export async function POST(req: NextRequest) {
     } catch {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/invalid-json",
-          title: "Invalid JSON",
+          type: 'https://siteflow.app/errors/invalid-json',
+          title: 'Invalid JSON',
           status: 400,
-          detail: "Request body must be valid JSON",
+          detail: 'Request body must be valid JSON',
           instance: req.url,
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -188,19 +188,19 @@ export async function POST(req: NextRequest) {
     if (!validationResult.success) {
       return new Response(
         JSON.stringify({
-          type: "https://siteflow.app/errors/validation",
-          title: "Invalid request body",
+          type: 'https://siteflow.app/errors/validation',
+          title: 'Invalid request body',
           status: 400,
-          detail: "Validation failed",
+          detail: 'Validation failed',
           instance: req.url,
           errors: validationResult.error.errors.reduce((acc: any, err) => {
-            acc[err.path.join(".")] = err.message;
+            acc[err.path.join('.')] = err.message;
             return acc;
           }, {}),
         }),
         {
           status: 400,
-          headers: { "content-type": "application/problem+json" },
+          headers: { 'content-type': 'application/problem+json' },
         },
       );
     }
@@ -249,22 +249,22 @@ export async function POST(req: NextRequest) {
       }),
       {
         status: 201,
-        headers: { "content-type": "application/json" },
+        headers: { 'content-type': 'application/json' },
       },
     );
   } catch (error) {
-    console.error("Error creating share link:", error);
+    console.error('Error creating share link:', error);
     return new Response(
       JSON.stringify({
-        type: "https://siteflow.app/errors/internal-server-error",
-        title: "Internal Server Error",
+        type: 'https://siteflow.app/errors/internal-server-error',
+        title: 'Internal Server Error',
         status: 500,
-        detail: "Failed to create share link",
+        detail: 'Failed to create share link',
         instance: req.url,
       }),
       {
         status: 500,
-        headers: { "content-type": "application/problem+json" },
+        headers: { 'content-type': 'application/problem+json' },
       },
     );
   }

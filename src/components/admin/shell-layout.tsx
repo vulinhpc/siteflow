@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 
-import { AdminHeader } from "./header";
-import { useProject } from "./project-context";
-import { AdminSidebar } from "./sidebar";
+import { AdminHeader } from './header';
+import { useProject } from './project-context';
+import { AdminSidebar } from './sidebar';
 
 type ShellLayoutProps = {
   children: React.ReactNode;

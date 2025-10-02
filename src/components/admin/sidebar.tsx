@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   BarChart3,
@@ -10,47 +10,47 @@ import {
   LayoutDashboard,
   ListChecks,
   Settings,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
+} from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const getNavigation = (locale: string) => [
   {
-    key: "dashboard",
+    key: 'dashboard',
     href: `/${locale}/dashboard`,
     icon: LayoutDashboard,
   },
   {
-    key: "projects",
+    key: 'projects',
     href: `/${locale}/projects`,
     icon: Building2,
   },
   {
-    key: "tasks",
+    key: 'tasks',
     href: `/${locale}/tasks`,
     icon: ListChecks,
   },
   {
-    key: "dailyLogs",
+    key: 'dailyLogs',
     href: `/${locale}/daily-logs`,
     icon: Calendar,
   },
   {
-    key: "finance",
+    key: 'finance',
     href: `/${locale}/finance`,
     icon: DollarSign,
   },
   {
-    key: "analytics",
+    key: 'analytics',
     href: `/${locale}/analytics`,
     icon: BarChart3,
   },
   {
-    key: "settings",
+    key: 'settings',
     href: `/${locale}/settings`,
     icon: Settings,
   },
@@ -68,17 +68,17 @@ export function AdminSidebar({
   className,
 }: AdminSidebarProps) {
   const pathname = usePathname();
-  const t = useTranslations("sidebar");
+  const t = useTranslations('sidebar');
 
   // Extract locale from pathname
-  const locale = pathname.split("/")[1] || "en";
+  const locale = pathname.split('/')[1] || 'en';
   const navigation = getNavigation(locale);
 
   return (
     <div
       className={cn(
-        "flex h-full flex-col border-r bg-background transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64",
+        'flex h-full flex-col border-r bg-background transition-all duration-300',
+        isCollapsed ? 'w-16' : 'w-64',
         className,
       )}
     >
@@ -103,11 +103,13 @@ export function AdminSidebar({
           size="icon"
           onClick={onToggleCollapse}
           className="size-8"
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {isCollapsed ? (
+          {isCollapsed
+? (
             <ChevronRight className="size-4" />
-          ) : (
+          )
+: (
             <ChevronLeft className="size-4" />
           )}
         </Button>
@@ -116,8 +118,8 @@ export function AdminSidebar({
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-4">
         {navigation.map((item) => {
-          const isActive =
-            pathname === item.href || pathname?.startsWith(item.href);
+          const isActive
+            = pathname === item.href || pathname?.startsWith(item.href);
           const Icon = item.icon;
 
           return (
@@ -125,20 +127,20 @@ export function AdminSidebar({
               key={item.key}
               href={item.href}
               className={cn(
-                "flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors group",
+                'flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors group',
                 isActive
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                isCollapsed && "justify-center",
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                isCollapsed && 'justify-center',
               )}
             >
               <Icon
                 className={cn(
-                  "h-4 w-4 transition-colors",
-                  !isCollapsed && "mr-3",
+                  'h-4 w-4 transition-colors',
+                  !isCollapsed && 'mr-3',
                   isActive
-                    ? "text-primary-foreground"
-                    : "text-muted-foreground group-hover:text-foreground",
+                    ? 'text-primary-foreground'
+                    : 'text-muted-foreground group-hover:text-foreground',
                 )}
               />
               {!isCollapsed && <span>{t(item.key as any)}</span>}

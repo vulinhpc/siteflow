@@ -1,25 +1,25 @@
-import { PGlite } from "@electric-sql/pglite";
-import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
-import { drizzle as drizzlePGlite } from "drizzle-orm/pglite";
-import { Pool } from "pg";
+import { PGlite } from '@electric-sql/pglite';
+import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
+import { drizzle as drizzlePGlite } from 'drizzle-orm/pglite';
+import { Pool } from 'pg';
 
-import * as schema from "@/models/Schema";
+import * as schema from '@/models/Schema';
 
 const db: any = (() => {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === 'production') {
     // ✅ PRODUCTION: Force PostgreSQL Cloud only - NO FALLBACK
 
     if (!process.env.DATABASE_URL) {
-      throw new Error("DATABASE_URL is required in production environment");
+      throw new Error('DATABASE_URL is required in production environment');
     }
 
     // Validate DATABASE_URL is not localhost
     if (
-      process.env.DATABASE_URL.includes("127.0.0.1") ||
-      process.env.DATABASE_URL.includes("localhost")
+      process.env.DATABASE_URL.includes('127.0.0.1')
+      || process.env.DATABASE_URL.includes('localhost')
     ) {
       throw new Error(
-        "DATABASE_URL cannot be localhost in production. Use cloud PostgreSQL (Neon, Supabase, etc.)",
+        'DATABASE_URL cannot be localhost in production. Use cloud PostgreSQL (Neon, Supabase, etc.)',
       );
     }
 
@@ -34,7 +34,7 @@ const db: any = (() => {
   } else {
     // ✅ DEVELOPMENT/TEST: Force PGLite only
 
-    const client = new PGlite({ dataDir: "./.local-db" });
+    const client = new PGlite({ dataDir: './.local-db' });
     const dbInstance = drizzlePGlite(client, { schema });
 
     // Run PGLite migrations for development

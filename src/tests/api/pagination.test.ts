@@ -1,4 +1,6 @@
 // Unit tests for pagination logic
+import { Buffer } from 'node:buffer';
+
 import { beforeAll, describe, expect, it } from 'vitest';
 
 // Mock data for testing

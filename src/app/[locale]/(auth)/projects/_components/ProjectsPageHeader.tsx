@@ -12,7 +12,7 @@ export function ProjectsPageHeader() {
       {/* Page Title and Description */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
-        <p className="text-muted-foreground mt-2">{t('description')}</p>
+        <p className="mt-2 text-muted-foreground">{t('description')}</p>
       </div>
 
       {/* KPI Cards */}

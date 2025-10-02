@@ -1,15 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  useReactTable,
   type SortingState,
+  useReactTable,
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -28,9 +28,9 @@ import { ProjectsMobileCard } from './ProjectsMobileCard';
 import type { ProjectsFilters } from './useProjectsQuery';
 import { useProjectsQuery } from './useProjectsQuery';
 
-interface ProjectsDataTableProps {
+type ProjectsDataTableProps = {
   filters: ProjectsFilters;
-}
+};
 
 export function ProjectsDataTable({ filters }: ProjectsDataTableProps) {
   const t = useTranslations('projects');
@@ -48,7 +48,7 @@ export function ProjectsDataTable({ filters }: ProjectsDataTableProps) {
   } = useProjectsQuery(filters);
 
   const columns = createColumns();
-  
+
   // Flatten all pages into a single array
   const allProjects = data?.pages?.flatMap((page: any) => page.items) || [];
 
@@ -66,8 +66,8 @@ export function ProjectsDataTable({ filters }: ProjectsDataTableProps) {
   if (error) {
     return (
       <Card className="p-6">
-        <div className="text-center space-y-4">
-          <div className="text-destructive font-medium">{t('errors.loadFailed')}</div>
+        <div className="space-y-4 text-center">
+          <div className="font-medium text-destructive">{t('errors.loadFailed')}</div>
           <div className="text-sm text-muted-foreground">{error.message}</div>
           <Button variant="outline" onClick={() => window.location.reload()}>
             {t('errors.retry')}
@@ -86,7 +86,7 @@ export function ProjectsDataTable({ filters }: ProjectsDataTableProps) {
             <div className="space-y-2">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={`desktop-skeleton-${i}`} className="flex items-center space-x-4">
-                  <Skeleton className="h-12 w-12 rounded" />
+                  <Skeleton className="size-12 rounded" />
                   <Skeleton className="h-4 w-[200px]" />
                   <Skeleton className="h-4 w-[100px]" />
                   <Skeleton className="h-4 w-[80px]" />
@@ -98,14 +98,14 @@ export function ProjectsDataTable({ filters }: ProjectsDataTableProps) {
               ))}
             </div>
           </div>
-          
+
           {/* Mobile skeleton */}
-          <div className="md:hidden space-y-4">
+          <div className="space-y-4 md:hidden">
             {Array.from({ length: 3 }).map((_, i) => (
               <Card key={`mobile-skeleton-${i}`} className="p-4">
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
-                    <Skeleton className="h-12 w-12 rounded" />
+                    <Skeleton className="size-12 rounded" />
                     <div className="space-y-2">
                       <Skeleton className="h-4 w-[150px]" />
                       <Skeleton className="h-3 w-[100px]" />
@@ -127,7 +127,7 @@ export function ProjectsDataTable({ filters }: ProjectsDataTableProps) {
   if (allProjects.length === 0) {
     return (
       <Card className="p-12">
-        <div className="text-center space-y-4">
+        <div className="space-y-4 text-center">
           <div className="text-lg font-medium">{t('empty.title')}</div>
           <div className="text-muted-foreground">{t('empty.description')}</div>
           <Button>{t('empty.action')}</Button>
@@ -143,15 +143,17 @@ export function ProjectsDataTable({ filters }: ProjectsDataTableProps) {
         <Card>
           <Table>
             <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
+              {table.getHeaderGroups().map(headerGroup => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
+                  {headerGroup.headers.map(header => (
                     <TableHead key={header.id} className="whitespace-nowrap">
-                      {header.isPlaceholder ? null : (
+                      {header.isPlaceholder
+? null
+: (
                         <div
                           className={
                             header.column.getCanSort()
-                              ? 'cursor-pointer select-none flex items-center space-x-1 hover:bg-muted/50 rounded px-2 py-1 -mx-2 -my-1'
+                              ? '-mx-2 -my-1 flex cursor-pointer select-none items-center space-x-1 rounded px-2 py-1 hover:bg-muted/50'
                               : ''
                           }
                           onClick={header.column.getToggleSortingHandler()}
@@ -165,14 +167,14 @@ export function ProjectsDataTable({ filters }: ProjectsDataTableProps) {
                           {header.column.getCanSort() && (
                             <div className="flex flex-col">
                               <ChevronUp
-                                className={`h-3 w-3 ${
+                                className={`size-3 ${
                                   header.column.getIsSorted() === 'asc'
                                     ? 'text-foreground'
                                     : 'text-muted-foreground/50'
                                 }`}
                               />
                               <ChevronDown
-                                className={`h-3 w-3 -mt-1 ${
+                                className={`-mt-1 size-3 ${
                                   header.column.getIsSorted() === 'desc'
                                     ? 'text-foreground'
                                     : 'text-muted-foreground/50'
@@ -188,9 +190,9 @@ export function ProjectsDataTable({ filters }: ProjectsDataTableProps) {
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows.map((row) => (
+              {table.getRowModel().rows.map(row => (
                 <TableRow key={row.id} className="hover:bg-muted/50" data-testid="project-row">
-                  {row.getVisibleCells().map((cell) => (
+                  {row.getVisibleCells().map(cell => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
@@ -203,7 +205,7 @@ export function ProjectsDataTable({ filters }: ProjectsDataTableProps) {
       </div>
 
       {/* Mobile Cards */}
-      <div className="md:hidden space-y-4">
+      <div className="space-y-4 md:hidden">
         {allProjects.map((project: any) => (
           <ProjectsMobileCard key={project.id} project={project} />
         ))}
@@ -218,12 +220,14 @@ export function ProjectsDataTable({ filters }: ProjectsDataTableProps) {
             disabled={isFetchingNextPage}
             className="min-w-[120px]"
           >
-            {isFetchingNextPage ? (
+            {isFetchingNextPage
+? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin" />
                 Loading...
               </>
-            ) : (
+            )
+: (
               t('pagination.loadMore')
             )}
           </Button>

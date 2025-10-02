@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
-import { ProjectProvider } from "@/components/admin/project-context";
-import { ShellLayout } from "@/components/admin/shell-layout";
-import { AuthWrapper } from "@/components/auth/AuthWrapper";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { ToastProvider } from "@/components/ui/toast";
+import { ProjectProvider } from '@/components/admin/project-context';
+import { ShellLayout } from '@/components/admin/shell-layout';
+import { AuthWrapper } from '@/components/auth/AuthWrapper';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { ToastProvider } from '@/components/ui/toast';
 
 type AuthLayoutProps = {
   children: ReactNode;
