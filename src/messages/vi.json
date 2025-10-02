@@ -270,6 +270,7 @@
       "archive": "Lưu trữ dự án"
     },
     "columns": {
+      "thumbnail": "Hình ảnh",
       "project": "Dự án",
       "manager": "Quản lý",
       "status": "Trạng thái",
@@ -291,7 +292,9 @@
       "totalProjects": "Tổng số dự án",
       "activeProjects": "Dự án đang hoạt động",
       "avgProgress": "Tiến độ TB", 
-      "totalBudget": "Tổng ngân sách"
+      "totalBudget": "Tổng ngân sách",
+      "budgetUsed": "Ngân sách đã dùng",
+      "overBudget": "Vượt ngân sách"
     },
     "basicInfo": "Thông tin cơ bản",
     "projectName": "Tên dự án",
@@ -327,6 +330,28 @@
     "selectStatus": "Chọn trạng thái",
     "noManagersFound": "Không tìm thấy quản lý",
     "searchManagers": "Tìm kiếm quản lý...",
+    "sort": {
+      "updatedDesc": "Cập nhật gần đây",
+      "updatedAsc": "Cũ nhất trước",
+      "nameAsc": "Tên A-Z",
+      "nameDesc": "Tên Z-A",
+      "progressDesc": "Tiến độ Cao-Thấp",
+      "progressAsc": "Tiến độ Thấp-Cao",
+      "budgetDesc": "Ngân sách Cao-Thấp",
+      "budgetAsc": "Ngân sách Thấp-Cao"
+    },
+    "pagination": {
+      "itemsPerPage": "Mục mỗi trang",
+      "showing": "Hiển thị {start} đến {end} của {total} dự án",
+      "loadMore": "Tải thêm",
+      "previous": "Trước",
+      "next": "Tiếp"
+    },
+    "budgetChip": {
+      "overBudget": "Vượt ngân sách",
+      "onBudget": "Đúng ngân sách",
+      "underBudget": "Dưới ngân sách"
+    },
     "budgetTotal": "Tổng ngân sách",
     "budgetTotalPlaceholder": "Nhập tổng số tiền ngân sách",
     "currencyLabel": "Tiền tệ",

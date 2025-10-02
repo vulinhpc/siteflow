@@ -19,7 +19,7 @@ const getUserRole = () => {
 
 // Mock all logs view for Admin/Owner
 const AllLogsView = () => {
-  const t = useTranslations("dailyLogs");
+  // const t = useTranslations("dailyLogs"); // TODO: Implement translations
   
   return (
     <div className="space-y-6">

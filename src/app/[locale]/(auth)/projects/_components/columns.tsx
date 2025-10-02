@@ -1,274 +1,292 @@
-"use client";
+'use client';
 
-import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
-import Link from "next/link";
-import Image from "next/image";
-import { useTranslations } from "next-intl";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { ColumnDef } from '@tanstack/react-table';
+import { MoreHorizontal, Eye, Edit, Share, Archive } from 'lucide-react';
+import Image from 'next/image';
+import { useTranslations } from 'next-intl';
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Progress } from "@/components/ui/progress";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { 
-  MoreHorizontal, 
-  Eye, 
-  Edit, 
-  Share, 
-  Archive,
-  Building2,
-  MapPin,
-  Calendar,
-  ArrowRight
-} from "lucide-react";
-import { Project } from "./useProjectsQuery";
+} from '@/components/ui/dropdown-menu';
+import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-const formatCurrency = (amount: number, currency = "VND") => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
+import type { Project } from './useProjectsQuery';
 
-const getStatusBadgeVariant = (status: Project["status"]) => {
-  switch (status) {
-    case "planning":
-      return "secondary";
-    case "in_progress":
-      return "default";
-    case "on_hold":
-      return "destructive";
-    case "completed":
-      return "outline";
-    default:
-      return "secondary";
-  }
-};
-
-const getStatusColor = (status: Project["status"]) => {
-  switch (status) {
-    case "planning":
-      return "text-blue-600 bg-blue-50";
-    case "in_progress":
-      return "text-green-600 bg-green-50";
-    case "on_hold":
-      return "text-red-600 bg-red-50";
-    case "completed":
-      return "text-gray-600 bg-gray-50";
-    default:
-      return "text-gray-600 bg-gray-50";
-  }
-};
-
-export function useProjectColumns(): ColumnDef<Project>[] {
-  const t = useTranslations("projects");
+// Status badge component
+function StatusBadge({ status }: { status: Project['status'] }) {
+  const t = useTranslations('projects.status');
   
+  const variants = {
+    planning: 'secondary',
+    in_progress: 'default',
+    on_hold: 'destructive',
+    completed: 'success',
+  } as const;
+
+  const labels = {
+    planning: t('planning'),
+    in_progress: t('in_progress'),
+    on_hold: t('on_hold'),
+    completed: t('completed'),
+  };
+
+  return (
+    <Badge variant={variants[status] as any}>
+      {labels[status]}
+    </Badge>
+  );
+}
+
+// Budget chip component
+function BudgetChip({ project }: { project: Project }) {
+  const t = useTranslations('projects.budgetChip');
+  
+  const isOverBudget = project.budget_used > project.budget_total;
+  const isOnBudget = project.budget_used_pct >= 90 && project.budget_used_pct <= 100;
+  
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: project.currency || 'VND',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="space-y-1">
+            <div className="text-sm font-medium">
+              {formatCurrency(project.budget_used)}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              / {formatCurrency(project.budget_total)}
+            </div>
+            <Badge 
+              variant={isOverBudget ? 'destructive' : isOnBudget ? 'default' : 'secondary'}
+              className="text-xs"
+            >
+              {isOverBudget 
+                ? t('overBudget') 
+                : isOnBudget 
+                ? t('onBudget') 
+                : t('underBudget')
+              }
+            </Badge>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{project.budget_used_pct.toFixed(1)}% used</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+// Actions dropdown component
+function ActionsDropdown({ project: _ }: { project: Project }) {
+  const t = useTranslations('projects.actions');
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Open menu</span>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem>
+          <Eye className="mr-2 h-4 w-4" />
+          {t('view')}
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <Edit className="mr-2 h-4 w-4" />
+          {t('edit')}
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <Share className="mr-2 h-4 w-4" />
+          {t('share')}
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <Archive className="mr-2 h-4 w-4" />
+          {t('archive')}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+export function createColumns(): ColumnDef<Project>[] {
   return [
-    // Thumbnail + Project Name
     {
-      id: "project",
-      header: t("columns.project"),
+      id: 'thumbnail',
+      header: 'Image',
       cell: ({ row }) => {
         const project = row.original;
         return (
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex-shrink-0">
-              {project.thumbnail_url ? (
-                <Image
-                  src={project.thumbnail_url}
-                  alt={project.name}
-                  width={48}
-                  height={48}
-                  className="h-12 w-12 rounded-lg object-cover border"
-                />
-              ) : (
-                <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center border">
-                  <Building2 className="h-6 w-6 text-muted-foreground" />
-                </div>
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <Link
-                href={`/projects/${project.id}/overview`}
-                className="font-medium text-foreground hover:text-primary transition-colors line-clamp-1"
-              >
-                {project.name}
-              </Link>
-              {project.address && (
-                <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                  <MapPin className="h-3 w-3 flex-shrink-0" />
-                  <span className="line-clamp-1">{project.address}</span>
-                </div>
-              )}
-            </div>
+          <div className="w-12 h-12 relative rounded-md overflow-hidden bg-muted">
+            {project.thumbnail_url ? (
+              <Image
+                src={project.thumbnail_url}
+                alt={project.name}
+                fill
+                className="object-cover"
+                sizes="48px"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+                No Image
+              </div>
+            )}
           </div>
         );
       },
+      enableSorting: false,
+      size: 60,
     },
-    
-    // Manager
     {
-      id: "manager",
-      header: t("columns.manager"),
+      id: 'project',
+      header: 'Project',
       cell: ({ row }) => {
-        const manager = row.original.manager;
+        const project = row.original;
+        return (
+          <div className="space-y-1">
+            <div className="font-medium" data-testid="project-name">{project.name}</div>
+            {project.address && (
+              <div className="text-sm text-muted-foreground line-clamp-1">
+                {project.address}
+              </div>
+            )}
+          </div>
+        );
+      },
+      enableSorting: true,
+      sortingFn: 'alphanumeric',
+    },
+    {
+      id: 'manager',
+      header: 'Manager',
+      cell: ({ row }) => {
+        const project = row.original;
+        if (!project.manager) {
+          return <span className="text-muted-foreground text-sm">No manager</span>;
+        }
+        
         return (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-2 cursor-pointer">
+                <div className="flex items-center space-x-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={manager.avatar_url} alt={manager.name} />
-                    <AvatarFallback className="text-xs">
-                      {manager.name.split(" ").map(n => n[0]).join("").toUpperCase()}
+                    <AvatarImage src={project.manager.avatar_url} />
+                    <AvatarFallback>
+                      {project.manager.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-medium line-clamp-1">{manager.name}</span>
+                  <div className="hidden sm:block">
+                    <div className="text-sm font-medium">{project.manager.name}</div>
+                  </div>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{manager.email || manager.name}</p>
+                <div>
+                  <p className="font-medium">{project.manager.name}</p>
+                  {project.manager.email && (
+                    <p className="text-sm text-muted-foreground">{project.manager.email}</p>
+                  )}
+                </div>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         );
       },
+      enableSorting: false,
     },
-    
-    // Status
     {
-      id: "status",
-      header: t("columns.status"),
-      cell: ({ row }) => {
-        const status = row.original.status;
-        return (
-          <Badge 
-            variant={getStatusBadgeVariant(status)}
-            className={getStatusColor(status)}
-          >
-            {t(`status.${status}`)}
-          </Badge>
-        );
-      },
-    },
-    
-    // Progress
-    {
-      id: "progress",
-      header: t("columns.progress"),
-      cell: ({ row }) => {
-        const progress = row.original.progress_pct;
-        return (
-          <div className="flex items-center gap-2 min-w-[120px]">
-            <Progress value={progress} className="flex-1" />
-            <span className="text-sm font-medium text-muted-foreground min-w-[35px]">
-              {progress}%
-            </span>
-          </div>
-        );
-      },
-    },
-    
-    // Budget
-    {
-      id: "budget",
-      header: t("columns.budget"),
+      id: 'status',
+      header: 'Status',
       cell: ({ row }) => {
         const project = row.original;
-        const isOverBudget = project.budget_used > project.budget_total;
-        
-        return (
-          <div className="text-sm">
-            <div className={`font-medium ${isOverBudget ? "text-red-600" : "text-foreground"}`}>
-              {formatCurrency(project.budget_used)} / {formatCurrency(project.budget_total)}
-            </div>
-            <div className={`text-xs ${isOverBudget ? "text-red-500" : "text-muted-foreground"}`}>
-              {project.budget_used_pct}%
-              {isOverBudget && (
-                <Badge variant="destructive" className="ml-1 text-xs">
-                  Over Budget
-                </Badge>
-              )}
-            </div>
-          </div>
-        );
+        return <StatusBadge status={project.status} />;
       },
+      enableSorting: true,
+      sortingFn: 'alphanumeric',
     },
-    
-    // Timeline
     {
-      id: "dates",
-      header: t("columns.dates"),
-      cell: ({ row }) => {
-        const dates = row.original.dates;
-        return (
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Calendar className="h-3 w-3 flex-shrink-0" />
-            <span>{format(new Date(dates.start_date), "dd MMM yyyy")}</span>
-            {dates.end_date && (
-              <>
-                <ArrowRight className="h-3 w-3" />
-                <span>{format(new Date(dates.end_date), "dd MMM yyyy")}</span>
-              </>
-            )}
-          </div>
-        );
-      },
-    },
-    
-    // Actions
-    {
-      id: "actions",
-      header: t("columns.actions"),
+      id: 'progress',
+      header: 'Progress',
       cell: ({ row }) => {
         const project = row.original;
-        
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href={`/projects/${project.id}/overview`} className="flex items-center gap-2">
-                  <Eye className="h-4 w-4" />
-                  {t("actions.view")}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex items-center gap-2">
-                <Edit className="h-4 w-4" />
-                {t("actions.edit")}
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="flex items-center gap-2"
-                onClick={() => {
-                  navigator.clipboard.writeText(`${window.location.origin}/share/${project.id}`);
-                }}
-              >
-                <Share className="h-4 w-4" />
-                {t("actions.share")}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex items-center gap-2 text-destructive">
-                <Archive className="h-4 w-4" />
-                {t("actions.archive")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="space-y-2 min-w-[100px]">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">{project.progress_pct}%</span>
+            </div>
+            <Progress value={project.progress_pct} className="h-2" />
+          </div>
         );
       },
+      enableSorting: true,
+      sortingFn: 'alphanumeric',
+    },
+    {
+      id: 'budget',
+      header: 'Budget',
+      cell: ({ row }) => {
+        const project = row.original;
+        return <BudgetChip project={project} />;
+      },
+      enableSorting: true,
+      sortingFn: 'alphanumeric',
+    },
+    {
+      id: 'dates',
+      header: 'Timeline',
+      cell: ({ row }) => {
+        const project = row.original;
+        const formatDate = (dateStr?: string) => {
+          if (!dateStr) return '—';
+          return new Intl.DateTimeFormat('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          }).format(new Date(dateStr));
+        };
+
+        return (
+          <div className="space-y-1 text-sm">
+            <div>
+              <span className="text-muted-foreground">Start:</span>{' '}
+              {formatDate(project.dates.start_date)}
+            </div>
+            <div>
+              <span className="text-muted-foreground">End:</span>{' '}
+              {formatDate(project.dates.end_date)}
+            </div>
+          </div>
+        );
+      },
+      enableSorting: false,
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => {
+        const project = row.original;
+        return <ActionsDropdown project={project} />;
+      },
+      enableSorting: false,
+      size: 50,
     },
   ];
 }

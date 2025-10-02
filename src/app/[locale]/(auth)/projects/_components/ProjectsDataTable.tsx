@@ -1,14 +1,19 @@
-"use client";
+'use client';
 
-import { useTranslations } from "next-intl";
-import Image from "next/image";
+import { useState } from 'react';
 import {
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+  type SortingState,
+} from '@tanstack/react-table';
+import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -16,338 +21,222 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  MoreHorizontal,
-  Building2,
-  MapPin,
-  Eye,
-  Edit,
-  Share,
-  Archive
-} from "lucide-react";
-import Link from "next/link";
-import { useProjectColumns } from "./columns";
-import { useProjectsQuery, type Project } from "./useProjectsQuery";
-import { EmptyState } from "./empty-states";
-import { PAGE_SIZE_OPTIONS } from "./filters";
+} from '@/components/ui/table';
 
-const formatCurrency = (amount: number, currency = "VND") => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
+import { createColumns } from './columns';
+import { ProjectsMobileCard } from './ProjectsMobileCard';
+import type { ProjectsFilters } from './useProjectsQuery';
+import { useProjectsQuery } from './useProjectsQuery';
 
-// Mobile Card Component
-function ProjectCard({ project }: { project: Project }) {
-  const t = useTranslations("projects");
-  const isOverBudget = project.budget_used > project.budget_total;
-  
-  return (
-    <Card className="mb-4">
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          {/* Thumbnail */}
-          <div className="flex-shrink-0">
-            {project.thumbnail_url ? (
-              <Image
-                src={project.thumbnail_url}
-                alt={project.name}
-                width={48}
-                height={48}
-                className="h-12 w-12 rounded-lg object-cover border"
-              />
-            ) : (
-              <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center border">
-                <Building2 className="h-6 w-6 text-muted-foreground" />
-              </div>
-            )}
-          </div>
-          
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between mb-2">
-              <div className="min-w-0 flex-1">
-                <Link
-                  href={`/projects/${project.id}/overview`}
-                  className="font-medium text-foreground hover:text-primary transition-colors line-clamp-1"
-                >
-                  {project.name}
-                </Link>
-                {project.address && (
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                    <MapPin className="h-3 w-3 flex-shrink-0" />
-                    <span className="line-clamp-1">{project.address}</span>
-                  </div>
-                )}
-              </div>
-              
-              {/* Actions */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link href={`/projects/${project.id}/overview`} className="flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      {t("actions.view")}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-2">
-                    <Edit className="h-4 w-4" />
-                    {t("actions.edit")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-2">
-                    <Share className="h-4 w-4" />
-                    {t("actions.share")}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="flex items-center gap-2 text-destructive">
-                    <Archive className="h-4 w-4" />
-                    {t("actions.archive")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            
-            {/* Status and Manager */}
-            <div className="flex items-center gap-2 mb-3">
-              <Badge variant="secondary">
-                {t(`status.${project.status}`)}
-              </Badge>
-              <div className="flex items-center gap-1">
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src={project.manager.avatar_url} alt={project.manager.name} />
-                  <AvatarFallback className="text-xs">
-                    {project.manager.name.split(" ").map(n => n[0]).join("").toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm text-muted-foreground">{project.manager.name}</span>
-              </div>
-            </div>
-            
-            {/* Progress */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium">{t("columns.progress")}</span>
-                <span className="text-sm text-muted-foreground">{project.progress_pct}%</span>
-              </div>
-              <Progress value={project.progress_pct} className="h-2" />
-            </div>
-            
-            {/* Budget */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">{t("columns.budget")}</span>
-              <div className="text-right">
-                <div className={`text-sm font-medium ${isOverBudget ? "text-red-600" : "text-foreground"}`}>
-                  {formatCurrency(project.budget_used)} / {formatCurrency(project.budget_total)}
-                </div>
-                <div className={`text-xs ${isOverBudget ? "text-red-500" : "text-muted-foreground"}`}>
-                  {project.budget_used_pct}%
-                  {isOverBudget && (
-                    <Badge variant="destructive" className="ml-1 text-xs">
-                      Over Budget
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+interface ProjectsDataTableProps {
+  filters: ProjectsFilters;
 }
 
-// Loading Skeleton
-function ProjectsTableSkeleton() {
-  return (
-    <div className="space-y-4">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={`loading-${i}`} className="flex items-center space-x-4 p-4 border rounded-lg">
-          <Skeleton className="h-12 w-12 rounded-lg" />
-          <div className="space-y-2 flex-1">
-            <Skeleton className="h-4 w-[200px]" />
-            <Skeleton className="h-3 w-[150px]" />
-          </div>
-          <Skeleton className="h-8 w-[80px]" />
-          <Skeleton className="h-8 w-[100px]" />
-          <Skeleton className="h-8 w-8" />
-        </div>
-      ))}
-    </div>
-  );
-}
+export function ProjectsDataTable({ filters }: ProjectsDataTableProps) {
+  const t = useTranslations('projects');
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'project', desc: false },
+  ]);
 
-export function ProjectsDataTable() {
-  const { data, isLoading, error, refetch } = useProjectsQuery();
-  const columns = useProjectColumns();
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useProjectsQuery(filters);
+
+  const columns = createColumns();
   
+  // Flatten all pages into a single array
+  const allProjects = data?.pages?.flatMap((page: any) => page.items) || [];
+
   const table = useReactTable({
-    data: data?.items || [],
+    data: allProjects,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    state: {
+      sorting,
+    },
   });
 
-  if (isLoading) {
+  if (error) {
     return (
-      <>
-        {/* Desktop Skeleton */}
-        <div className="hidden md:block">
-          <ProjectsTableSkeleton />
+      <Card className="p-6">
+        <div className="text-center space-y-4">
+          <div className="text-destructive font-medium">{t('errors.loadFailed')}</div>
+          <div className="text-sm text-muted-foreground">{error.message}</div>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            {t('errors.retry')}
+          </Button>
         </div>
-        {/* Mobile Skeleton */}
-        <div className="md:hidden space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Card key={`mobile-loading-${i}`}>
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <Skeleton className="h-12 w-12 rounded-lg" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-[200px]" />
-                    <Skeleton className="h-3 w-[150px]" />
-                    <Skeleton className="h-2 w-full" />
-                    <Skeleton className="h-4 w-[100px]" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </>
+      </Card>
     );
   }
 
-  if (error) {
-    return <EmptyState type="error" onRetry={() => refetch()} />;
+  if (isLoading) {
+    return (
+      <Card className="p-6">
+        <div className="space-y-4">
+          {/* Desktop skeleton */}
+          <div className="hidden md:block">
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={`desktop-skeleton-${i}`} className="flex items-center space-x-4">
+                  <Skeleton className="h-12 w-12 rounded" />
+                  <Skeleton className="h-4 w-[200px]" />
+                  <Skeleton className="h-4 w-[100px]" />
+                  <Skeleton className="h-4 w-[80px]" />
+                  <Skeleton className="h-4 w-[120px]" />
+                  <Skeleton className="h-4 w-[100px]" />
+                  <Skeleton className="h-4 w-[100px]" />
+                  <Skeleton className="h-4 w-[50px]" />
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Mobile skeleton */}
+          <div className="md:hidden space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={`mobile-skeleton-${i}`} className="p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Skeleton className="h-12 w-12 rounded" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-[150px]" />
+                      <Skeleton className="h-3 w-[100px]" />
+                    </div>
+                  </div>
+                  <div className="flex justify-between">
+                    <Skeleton className="h-6 w-[80px]" />
+                    <Skeleton className="h-6 w-[60px]" />
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </Card>
+    );
   }
 
-  if (!data?.items?.length) {
-    return <EmptyState type="no-results" />;
+  if (allProjects.length === 0) {
+    return (
+      <Card className="p-12">
+        <div className="text-center space-y-4">
+          <div className="text-lg font-medium">{t('empty.title')}</div>
+          <div className="text-muted-foreground">{t('empty.description')}</div>
+          <Button>{t('empty.action')}</Button>
+        </div>
+      </Card>
+    );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="projects-data-table">
       {/* Desktop Table */}
       <div className="hidden md:block">
-        <div className="rounded-md border" data-testid="projects-table">
+        <Card>
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
+                    <TableHead key={header.id} className="whitespace-nowrap">
+                      {header.isPlaceholder ? null : (
+                        <div
+                          className={
+                            header.column.getCanSort()
+                              ? 'cursor-pointer select-none flex items-center space-x-1 hover:bg-muted/50 rounded px-2 py-1 -mx-2 -my-1'
+                              : ''
+                          }
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          <span>
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                          </span>
+                          {header.column.getCanSort() && (
+                            <div className="flex flex-col">
+                              <ChevronUp
+                                className={`h-3 w-3 ${
+                                  header.column.getIsSorted() === 'asc'
+                                    ? 'text-foreground'
+                                    : 'text-muted-foreground/50'
+                                }`}
+                              />
+                              <ChevronDown
+                                className={`h-3 w-3 -mt-1 ${
+                                  header.column.getIsSorted() === 'desc'
+                                    ? 'text-foreground'
+                                    : 'text-muted-foreground/50'
+                                }`}
+                              />
+                            </div>
                           )}
+                        </div>
+                      )}
                     </TableHead>
                   ))}
                 </TableRow>
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    data-testid="projects-row"
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
-                  </TableCell>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} className="hover:bg-muted/50" data-testid="project-row">
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              )}
+              ))}
             </TableBody>
           </Table>
-        </div>
+        </Card>
       </div>
 
       {/* Mobile Cards */}
-      <div className="md:hidden">
-        {data.items.map((project) => (
-          <ProjectCard key={project.id} project={project} />
+      <div className="md:hidden space-y-4">
+        {allProjects.map((project: any) => (
+          <ProjectsMobileCard key={project.id} project={project} />
         ))}
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between" data-testid="projects-pagination">
-        <div className="flex items-center space-x-2">
-          <p className="text-sm font-medium">Rows per page</p>
-          <Select value="20" onValueChange={() => {}}>
-            <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent side="top">
-              {PAGE_SIZE_OPTIONS.map((pageSize) => (
-                <SelectItem key={pageSize} value={`${pageSize}`}>
-                  {pageSize}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {/* Load More Button */}
+      {hasNextPage && (
+        <div className="flex justify-center pt-4">
+          <Button
+            variant="outline"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="min-w-[120px]"
+          >
+            {isFetchingNextPage ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              t('pagination.loadMore')
+            )}
+          </Button>
         </div>
-        <div className="flex items-center space-x-6 lg:space-x-8">
-          <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">
-              Page 1 of 1
-            </p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              className="h-8 w-8 p-0"
-              disabled={true}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="h-8 w-8 p-0"
-              disabled={true}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+      )}
+
+      {/* Results Summary */}
+      <div className="text-center text-sm text-muted-foreground">
+        {t('pagination.showing', {
+          start: 1,
+          end: allProjects.length,
+          total: allProjects.length,
+        })}
       </div>
     </div>
   );

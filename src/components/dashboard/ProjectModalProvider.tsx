@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-import { CreateProjectModal } from './CreateProjectModal';
+import CreateProjectModal from './CreateProjectModal';
 
 type ProjectModalProviderProps = {
   onProjectCreated?: () => void;

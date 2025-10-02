@@ -191,6 +191,7 @@
       "archive": "Archive Project"
     },
     "columns": {
+      "thumbnail": "Image",
       "project": "Project",
       "manager": "Manager",
       "status": "Status", 
@@ -212,7 +213,9 @@
       "totalProjects": "Total Projects",
       "activeProjects": "Active Projects", 
       "avgProgress": "Avg Progress",
-      "totalBudget": "Total Budget"
+      "totalBudget": "Total Budget",
+      "budgetUsed": "Budget Used",
+      "overBudget": "Over Budget"
     },
     "basicInfo": "Basic Information",
     "projectName": "Project Name",
@@ -247,6 +250,28 @@
     "selectDate": "Select date",
     "selectStatus": "Select status",
     "noManagersFound": "No managers found",
+    "sort": {
+      "updatedDesc": "Recently Updated",
+      "updatedAsc": "Oldest First",
+      "nameAsc": "Name A-Z",
+      "nameDesc": "Name Z-A",
+      "progressDesc": "Progress High-Low",
+      "progressAsc": "Progress Low-High",
+      "budgetDesc": "Budget High-Low",
+      "budgetAsc": "Budget Low-High"
+    },
+    "pagination": {
+      "itemsPerPage": "Items per page",
+      "showing": "Showing {start} to {end} of {total} projects",
+      "loadMore": "Load More",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "budgetChip": {
+      "overBudget": "Over Budget",
+      "onBudget": "On Budget",
+      "underBudget": "Under Budget"
+    },
     "searchManagers": "Search managers...",
     "budgetTotal": "Budget Total",
     "budgetTotalPlaceholder": "Enter total budget amount",

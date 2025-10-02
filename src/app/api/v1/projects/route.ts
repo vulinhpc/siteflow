@@ -5,10 +5,7 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 
 import {
-  membershipsSchema,
   projectsSchema,
-  transactionsSchema,
-  usersSchema,
 } from '@/models/Schema';
 
 // Lazy load database to avoid connection during build time
@@ -20,7 +17,7 @@ async function getDb() {
 // Query params validation schema for GET /api/v1/projects
 const getProjectsQuerySchema = z.object({
   cursor: z.string().optional(),
-  limit: z.coerce.number().min(1).max(100).default(10),
+  limit: z.coerce.number().min(1).max(100).default(20),
   q: z.string().optional(), // search query
   status: z.array(z.enum(['planning', 'in_progress', 'on_hold', 'completed'])).optional(),
   manager: z.string().uuid().optional(), // manager user ID
@@ -59,44 +56,34 @@ const createProjectSchema = z
   .refine(
     (data) => {
       // Ensure start_date is before or equal to end_date if both are provided
-      if (data.start_date && data.end_date) {
-        const start = new Date(data.start_date);
-        const end = new Date(data.end_date);
-        return start <= end;
+      if (data.end_date) {
+        return new Date(data.start_date) <= new Date(data.end_date);
       }
       return true;
     },
     {
-      message: 'Start date must be before or equal to end date',
-      path: ['start_date'],
+      message: 'End date must be after or equal to start date',
+      path: ['end_date'],
     },
   );
 
-// Helper function to parse cursor
-function parseCursor(cursor?: string): { updatedAt: Date; id: string } | null {
-  if (!cursor) {
-    return null;
+// Helper functions for cursor-based pagination
+function parseCursor(cursor: string): { updatedAt: Date; id: string } {
+  const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
+  const [updatedAtStr, id] = decoded.split('|');
+  if (!updatedAtStr || !id) {
+    throw new Error('Invalid cursor format');
   }
-  try {
-    const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
-    const [updatedAt, id] = decoded.split('|');
-    if (!updatedAt || !id) {
-      return null;
-    }
-    return { updatedAt: new Date(updatedAt), id };
-  } catch {
-    return null;
-  }
+  return { updatedAt: new Date(updatedAtStr), id };
 }
 
-// Helper function to create cursor
 function createCursor(updatedAt: Date, id: string): string {
-  const data = `${updatedAt.toISOString()}|${id}`;
-  return Buffer.from(data, 'utf-8').toString('base64');
+  const cursorData = `${updatedAt.toISOString()}|${id}`;
+  return Buffer.from(cursorData, 'utf-8').toString('base64');
 }
 
-// Project type for query results (for future use)
-type _ProjectQueryResult = {
+// Type for the query result before formatting
+type ProjectQueryResult = {
   id: string;
   name: string;
   status: string;
@@ -112,10 +99,12 @@ type _ProjectQueryResult = {
   investorPhone: string | null;
   createdAt: Date;
   updatedAt: Date;
+  // Manager info from joins
   managerId: string | null;
   managerName: string | null;
   managerEmail: string | null;
   managerAvatarUrl: string | null;
+  // Budget used from transactions
   budgetUsed: number;
 };
 
@@ -188,7 +177,7 @@ export async function GET(req: NextRequest) {
 
     // Add status filter
     if (status && status.length > 0) {
-      conditions.push(sql`${projectsSchema.status} = ANY(${status})`);
+      conditions.push(sql`${projectsSchema.status} IN (${sql.join(status.map(s => sql`${s}`), sql`, `)})`);
     }
 
     // Add date range filters
@@ -200,23 +189,21 @@ export async function GET(req: NextRequest) {
     }
 
     // Add cursor-based pagination
-    const cursorData = parseCursor(cursor);
-    if (cursorData) {
-      if (order === 'desc') {
-        conditions.push(
-          sql`(${projectsSchema.updatedAt}, ${projectsSchema.id}) < (${cursorData.updatedAt}, ${cursorData.id})`,
-        );
-      } else {
+    if (cursor) {
+      try {
+        const cursorData = parseCursor(cursor);
         conditions.push(
           sql`(${projectsSchema.updatedAt}, ${projectsSchema.id}) > (${cursorData.updatedAt}, ${cursorData.id})`,
         );
+      } catch {
+        // Invalid cursor, ignore
       }
     }
 
-    // Simplified query without complex joins for now
+    // Build the main query (simplified for current database setup)
     const query = db
       .select({
-        // Project fields only
+        // Project fields
         id: projectsSchema.id,
         name: projectsSchema.name,
         status: projectsSchema.status,
@@ -232,9 +219,21 @@ export async function GET(req: NextRequest) {
         investorPhone: projectsSchema.investorPhone,
         createdAt: projectsSchema.createdAt,
         updatedAt: projectsSchema.updatedAt,
+        // Manager info (mock for now - will be populated in formatting)
+        managerId: sql<string | null>`NULL`,
+        managerName: sql<string | null>`NULL`,
+        managerEmail: sql<string | null>`NULL`,
+        managerAvatarUrl: sql<string | null>`NULL`,
+        // Budget used (mock for now - will be calculated in formatting)
+        budgetUsed: sql<number>`0`,
       })
       .from(projectsSchema)
       .where(and(...conditions));
+
+    // Note: Manager filter disabled temporarily due to join removal
+    // if (manager) {
+    //   query.having(eq(usersSchema.id, manager));
+    // }
 
     // Add sorting
     if (sort === 'name') {
@@ -242,6 +241,7 @@ export async function GET(req: NextRequest) {
     } else if (sort === 'updatedAt') {
       query.orderBy(order === 'desc' ? desc(projectsSchema.updatedAt) : asc(projectsSchema.updatedAt), desc(projectsSchema.id));
     }
+    // Note: progress_pct and budget_used_pct sorting would require subqueries, implementing basic sorts first
 
     // Execute query with limit + 1 to check for next page
     const results = await query.limit(limit + 1);
@@ -250,39 +250,49 @@ export async function GET(req: NextRequest) {
     const hasMore = results.length > limit;
     const items = hasMore ? results.slice(0, limit) : results;
 
-    // Format items with mock computed fields for now
-    const formattedItems = items.map((project: any) => {
-      // Mock progress calculation
-      const progress_pct = Math.floor(Math.random() * 100);
-      
-      const budgetTotal = project.budgetTotal ? Number(project.budgetTotal) : 0;
-      const budgetUsed = Math.floor(Math.random() * budgetTotal * 0.8); // Mock budget used
-      const budget_used_pct = budgetTotal > 0 ? (budgetUsed / budgetTotal) * 100 : 0;
+    // Calculate progress for each project (simplified - would need proper task progress calculation)
+    const formattedItems = await Promise.all(
+      items.map(async (project: ProjectQueryResult) => {
+        // For now, use a mock progress calculation
+        // In a real implementation, this would query tasks and daily_log_tasks
+        const progress_pct = Math.floor(Math.random() * 100); // Mock data
 
-      return {
-        id: project.id,
-        name: project.name,
-        status: project.status,
-        thumbnail_url: project.thumbnailUrl,
-        address: project.address,
-        progress_pct,
-        budget_total: budgetTotal,
-        budget_used: budgetUsed,
-        budget_used_pct: Math.round(budget_used_pct * 100) / 100,
-        manager: null, // Simplified - no manager info for now
-        dates: {
-          start_date: project.startDate,
-          end_date: project.endDate,
-        },
-        updatedAt: project.updatedAt.toISOString(),
-        // Additional fields for compatibility
-        currency: project.currency,
-        description: project.description,
-        scale: project.scale,
-        investor_name: project.investorName,
-        investor_phone: project.investorPhone,
-      };
-    });
+        const budgetTotal = project.budgetTotal ? Number(project.budgetTotal) : 0;
+        const budgetUsed = Math.floor(Math.random() * budgetTotal * 0.8); // Mock budget used
+        const budget_used_pct = budgetTotal > 0 ? (budgetUsed / budgetTotal) * 100 : 0;
+
+        return {
+          id: project.id,
+          name: project.name,
+          status: project.status,
+          thumbnail_url: project.thumbnailUrl,
+          address: project.address,
+          progress_pct,
+          budget_total: budgetTotal,
+          budget_used: budgetUsed,
+          budget_used_pct: Math.round(budget_used_pct * 100) / 100,
+          manager: project.managerId
+            ? {
+                id: project.managerId,
+                name: project.managerName || 'Unknown',
+                email: project.managerEmail,
+                avatar_url: project.managerAvatarUrl,
+              }
+            : null,
+          dates: {
+            start_date: project.startDate,
+            end_date: project.endDate,
+          },
+          updatedAt: project.updatedAt.toISOString(),
+          // Additional fields for compatibility
+          currency: project.currency,
+          description: project.description,
+          scale: project.scale,
+          investor_name: project.investorName,
+          investor_phone: project.investorPhone,
+        };
+      }),
+    );
 
     // Generate next cursor if there are more results
     let nextCursor: string | undefined;
@@ -389,82 +399,34 @@ export async function POST(req: NextRequest) {
     let newProject: any;
     try {
       // Creating project with validated data
-
       const [result] = await db
         .insert(projectsSchema)
         .values({
-          id: crypto.randomUUID(),
           orgId,
           name: validatedData.name,
           status: validatedData.status,
           startDate: validatedData.start_date,
           endDate: validatedData.end_date || null,
-          budgetTotal: validatedData.budget_total?.toString() ?? null,
+          budgetTotal: validatedData.budget_total?.toString() || null,
           currency: validatedData.currency,
-          description: validatedData.description ?? null,
-          thumbnailUrl: validatedData.thumbnail_url ?? null,
-          address: validatedData.address ?? null,
-          scale: validatedData.scale ?? null,
-          investorName: validatedData.investor_name ?? null,
-          investorPhone: validatedData.investor_phone ?? null,
+          address: validatedData.address || null,
+          scale: validatedData.scale || null,
+          investorName: validatedData.investor_name || null,
+          investorPhone: validatedData.investor_phone || null,
+          description: validatedData.description || null,
+          thumbnailUrl: validatedData.thumbnail_url || null,
         })
         .returning();
 
       newProject = result;
-      // Project created successfully
-
-      // Project members functionality removed for canonical API
-    } catch (error) {
-      console.error('=== DATABASE INSERT ERROR ===');
-      console.error('Error:', error);
-      console.error(
-        'Error message:',
-        error instanceof Error ? error.message : 'Unknown error',
-      );
-      console.error(
-        'Error stack:',
-        error instanceof Error ? error.stack : undefined,
-      );
-      console.error('OrgId:', orgId);
-      console.error('Validated data:', validatedData);
-      console.error('Request body:', body);
-      console.error('===============================');
-
+    } catch (dbError) {
+      console.error('Database insertion error:', dbError);
       return new Response(
         JSON.stringify({
           type: 'https://siteflow.app/errors/database-error',
           title: 'Database Error',
           status: 500,
-          detail:
-            error instanceof Error
-              ? error.message
-              : 'Failed to create project in database',
-          instance: req.url,
-          errors: [
-            {
-              field: 'database',
-              message:
-                error instanceof Error
-                  ? error.message
-                  : 'Unknown database error',
-            },
-          ],
-        }),
-        {
-          status: 500,
-          headers: { 'content-type': 'application/problem+json' },
-        },
-      );
-    }
-
-    if (!newProject) {
-      console.error('Project creation returned null/undefined');
-      return new Response(
-        JSON.stringify({
-          type: 'https://siteflow.app/errors/database-error',
-          title: 'Database Error',
-          status: 500,
-          detail: 'Project creation returned no result',
+          detail: 'Failed to create project in database',
           instance: req.url,
         }),
         {
@@ -473,33 +435,24 @@ export async function POST(req: NextRequest) {
         },
       );
     }
-
-    // Format canonical response
-    const project = {
-      id: newProject.id,
-      name: newProject.name,
-      status: newProject.status,
-      start_date: newProject.startDate ? (typeof newProject.startDate === 'string' ? newProject.startDate : newProject.startDate.toISOString().split('T')[0]) : null,
-      end_date: newProject.endDate ? (typeof newProject.endDate === 'string' ? newProject.endDate : newProject.endDate.toISOString().split('T')[0]) : null,
-      budget_total: newProject.budgetTotal
-        ? Number(newProject.budgetTotal)
-        : null,
-      currency: newProject.currency,
-      description: newProject.description,
-      thumbnail_url: newProject.thumbnailUrl,
-      address: newProject.address,
-      scale: newProject.scale,
-      investor_name: newProject.investorName,
-      investor_phone: newProject.investorPhone,
-      created_at: newProject.createdAt.toISOString(),
-      updated_at: newProject.updatedAt.toISOString(),
-      org_id: newProject.orgId,
-    };
 
     return new Response(
       JSON.stringify({
-        ok: true,
-        project,
+        id: newProject.id,
+        name: newProject.name,
+        status: newProject.status,
+        start_date: newProject.startDate,
+        end_date: newProject.endDate,
+        budget_total: newProject.budgetTotal ? Number(newProject.budgetTotal) : null,
+        currency: newProject.currency,
+        address: newProject.address,
+        scale: newProject.scale,
+        investor_name: newProject.investorName,
+        investor_phone: newProject.investorPhone,
+        description: newProject.description,
+        thumbnail_url: newProject.thumbnailUrl,
+        created_at: newProject.createdAt,
+        updated_at: newProject.updatedAt,
       }),
       {
         status: 201,
@@ -507,13 +460,13 @@ export async function POST(req: NextRequest) {
       },
     );
   } catch (error) {
-    console.error('Error creating project:', error);
+    console.error('Unexpected error in POST /api/v1/projects:', error);
     return new Response(
       JSON.stringify({
         type: 'https://siteflow.app/errors/internal-server-error',
         title: 'Internal Server Error',
         status: 500,
-        detail: 'Failed to create project',
+        detail: 'An unexpected error occurred',
         instance: req.url,
       }),
       {

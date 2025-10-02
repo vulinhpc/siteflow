@@ -63,13 +63,13 @@ const formatDateDisplay = (dateString: string, locale: string) => {
 };
 
 // Helper function to format numbers with thousands separator
-const formatNumber = (value: number | undefined, locale: string) => {
-  if (!value) return "";
-  if (locale === "vi") {
-    return value.toLocaleString("vi-VN");
-  }
-  return value.toLocaleString("en-US");
-};
+// const formatNumber = (value: number | undefined, locale: string) => {
+//   if (!value) return "";
+//   if (locale === "vi") {
+//     return value.toLocaleString("vi-VN");
+//   }
+//   return value.toLocaleString("en-US");
+// };
 
 // Member schema for project assignment
 const memberSchema = z.object({
@@ -256,7 +256,11 @@ export default function CreateProjectModal({
         thumbnail_url: data.thumbnailUrl || undefined,
       };
 
-      await onSubmit(cleanedData);
+      await onSubmit({
+        ...cleanedData,
+        startDate: cleanedData.start_date,
+        endDate: cleanedData.end_date,
+      });
       form.reset();
       onOpenChange(false);
       onProjectCreated?.();

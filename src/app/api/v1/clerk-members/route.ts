@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 
 import { membershipsSchema, usersSchema } from '@/models/Schema';

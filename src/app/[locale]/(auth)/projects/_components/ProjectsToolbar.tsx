@@ -1,17 +1,20 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import React, { useState } from 'react';
+import { Search, Filter, X, Plus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Sheet,
   SheetContent,
@@ -19,310 +22,279 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Search, 
-  X, 
-  Plus,
-  SlidersHorizontal
-} from "lucide-react";
-import { useDebounce } from "@/hooks/use-debounce";
-import { 
-  parseFiltersFromURL, 
-  filtersToURLParams, 
-  resetFilters, 
-  SORT_OPTIONS,
-  type ProjectFilters 
-} from "./filters";
+} from '@/components/ui/sheet';
 
-// Mock managers data - in real app this would come from API
-const MOCK_MANAGERS = [
-  { id: "mgr-1", name: "Nguyễn Văn A" },
-  { id: "mgr-2", name: "Trần Thị B" },
-  { id: "mgr-3", name: "Lê Văn C" },
-  { id: "mgr-4", name: "Phạm Thị D" },
-];
+import { useDebounce } from '@/hooks/use-debounce';
 
-const STATUS_OPTIONS = [
-  { value: "planning", label: "Planning" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "on_hold", label: "On Hold" },
-  { value: "completed", label: "Completed" },
-];
+import type { ProjectsFilters } from './useProjectsQuery';
 
 interface ProjectsToolbarProps {
-  onCreateProject?: () => void;
+  filters: ProjectsFilters;
+  onFiltersChange: (filters: ProjectsFilters) => void;
+  onCreateProject: () => void;
 }
 
-export function ProjectsToolbar({ onCreateProject }: ProjectsToolbarProps) {
-  const t = useTranslations("projects");
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  
-  const [filters, setFilters] = useState<ProjectFilters>(() => 
-    parseFiltersFromURL(searchParams)
-  );
-  const [searchValue, setSearchValue] = useState(filters.q || "");
+export function ProjectsToolbar({
+  filters,
+  onFiltersChange,
+  onCreateProject,
+}: ProjectsToolbarProps) {
+  const t = useTranslations('projects');
+  const [searchValue, setSearchValue] = useState(filters.q || '');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   
+  // Debounce search to avoid too many API calls
   const debouncedSearch = useDebounce(searchValue, 300);
-  
-  // Update URL when filters change
-  const updateURL = useCallback((newFilters: ProjectFilters) => {
-    const params = filtersToURLParams(newFilters);
-    const url = `${window.location.pathname}?${params.toString()}`;
-    router.push(url);
-  }, [router]);
-  
-  // Update filters when search changes
-  useEffect(() => {
+
+  // Update filters when debounced search changes
+  React.useEffect(() => {
     if (debouncedSearch !== filters.q) {
-      const newFilters = { ...filters, q: debouncedSearch, cursor: "" };
-      setFilters(newFilters);
-      updateURL(newFilters);
+      onFiltersChange({ ...filters, q: debouncedSearch });
     }
-  }, [debouncedSearch, filters, updateURL]);
-  
-  // Update filters when URL changes
-  useEffect(() => {
-    const urlFilters = parseFiltersFromURL(searchParams);
-    setFilters(urlFilters);
-    setSearchValue(urlFilters.q || "");
-  }, [searchParams]);
-  
-  const handleFilterChange = (key: keyof ProjectFilters, value: any) => {
-    const newFilters = { ...filters, [key]: value, cursor: "" };
-    setFilters(newFilters);
-    updateURL(newFilters);
+  }, [debouncedSearch, filters, onFiltersChange]);
+
+  const handleStatusChange = (status: string[]) => {
+    onFiltersChange({ ...filters, status });
   };
-  
-  const handleStatusToggle = (status: string) => {
-    const currentStatus = filters.status || [];
-    const newStatus = currentStatus.includes(status)
-      ? currentStatus.filter(s => s !== status)
-      : [...currentStatus, status];
-    handleFilterChange("status", newStatus);
+
+  const handleSortChange = (sort: string) => {
+    const [sortField, order] = sort.split('_');
+    onFiltersChange({
+      ...filters,
+      sort: sortField as any,
+      order: order as 'asc' | 'desc',
+    });
   };
-  
+
   const handleResetFilters = () => {
-    const newFilters = resetFilters();
-    setFilters(newFilters);
-    setSearchValue("");
-    updateURL(newFilters);
+    setSearchValue('');
+    onFiltersChange({});
     setIsFiltersOpen(false);
   };
-  
+
   const getActiveFiltersCount = () => {
     let count = 0;
     if (filters.q) count++;
     if (filters.status?.length) count++;
     if (filters.manager) count++;
-    if (filters.budgetMin !== undefined || filters.budgetMax !== undefined) count++;
-    if (filters.startFrom || filters.startTo) count++;
+    if (filters.start_from || filters.start_to) count++;
     return count;
   };
-  
-  const activeFiltersCount = getActiveFiltersCount();
-  
+
+  const getCurrentSort = () => {
+    if (!filters.sort) return 'updatedAt_desc';
+    return `${filters.sort}_${filters.order || 'desc'}`;
+  };
+
   return (
-    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-      {/* Left side - Search and Filters */}
-      <div className="flex flex-1 items-center gap-2 w-full sm:w-auto">
+    <div className="space-y-4">
+      {/* Main toolbar */}
+      <div className="flex flex-col sm:flex-row gap-4">
         {/* Search */}
-        <div className="relative flex-1 sm:max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={t("searchPlaceholder")}
+            placeholder={t('searchPlaceholder')}
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            className="pl-9"
-            data-testid="projects-search"
+            className="pl-10"
           />
         </div>
-        
-        {/* Filters Sheet (Mobile) */}
+
+        {/* Sort */}
+        <Select value={getCurrentSort()} onValueChange={handleSortChange}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="updatedAt_desc">{t('sort.updatedDesc')}</SelectItem>
+            <SelectItem value="updatedAt_asc">{t('sort.updatedAsc')}</SelectItem>
+            <SelectItem value="name_asc">{t('sort.nameAsc')}</SelectItem>
+            <SelectItem value="name_desc">{t('sort.nameDesc')}</SelectItem>
+            <SelectItem value="progress_pct_desc">{t('sort.progressDesc')}</SelectItem>
+            <SelectItem value="progress_pct_asc">{t('sort.progressAsc')}</SelectItem>
+            <SelectItem value="budget_used_pct_desc">{t('sort.budgetDesc')}</SelectItem>
+            <SelectItem value="budget_used_pct_asc">{t('sort.budgetAsc')}</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Filters Sheet */}
         <Sheet open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="relative">
-              <SlidersHorizontal className="h-4 w-4 mr-2" />
-              {t("filters.apply")}
-              {activeFiltersCount > 0 && (
-                <Badge 
-                  variant="secondary" 
+            <Button variant="outline" className="relative">
+              <Filter className="mr-2 h-4 w-4" />
+              {t('filters.status')}
+              {getActiveFiltersCount() > 0 && (
+                <Badge
+                  variant="secondary"
                   className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
                 >
-                  {activeFiltersCount}
+                  {getActiveFiltersCount()}
                 </Badge>
               )}
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+          <SheetContent>
             <SheetHeader>
-              <SheetTitle>Filter Projects</SheetTitle>
+              <SheetTitle>{t('filters.status')}</SheetTitle>
               <SheetDescription>
-                Apply filters to find specific projects
+                Filter projects by status, manager, budget, and dates
               </SheetDescription>
             </SheetHeader>
             
             <div className="space-y-6 mt-6">
               {/* Status Filter */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">{t("filters.status")}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {STATUS_OPTIONS.map((status) => (
-                    <div key={status.value} className="flex items-center space-x-2">
+              <div className="space-y-2">
+                <Label>{t('filters.status')}</Label>
+                <div className="space-y-2">
+                  {['planning', 'in_progress', 'on_hold', 'completed'].map((status) => (
+                    <div key={status} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        id={`status-${status.value}`}
-                        checked={filters.status?.includes(status.value) || false}
-                        onChange={() => handleStatusToggle(status.value)}
-                        className="rounded border-gray-300"
-                        data-testid="projects-filter-status"
+                        id={status}
+                        checked={filters.status?.includes(status) || false}
+                        onChange={(e) => {
+                          const currentStatus = filters.status || [];
+                          if (e.target.checked) {
+                            handleStatusChange([...currentStatus, status]);
+                          } else {
+                            handleStatusChange(currentStatus.filter(s => s !== status));
+                          }
+                        }}
+                        className="rounded"
                       />
-                      <Label htmlFor={`status-${status.value}`} className="text-sm">
-                        {t(`status.${status.value}`)}
+                      <Label htmlFor={status} className="text-sm">
+                        {t(`status.${status.replace('_', '')}`)}
                       </Label>
                     </div>
                   ))}
-                </CardContent>
-              </Card>
-              
-              {/* Manager Filter */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">{t("filters.manager")}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Select 
-                    value={filters.manager || ""} 
-                    onValueChange={(value) => handleFilterChange("manager", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select manager" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All Managers</SelectItem>
-                      {MOCK_MANAGERS.map((manager) => (
-                        <SelectItem key={manager.id} value={manager.id}>
-                          {manager.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </CardContent>
-              </Card>
-              
-              {/* Budget Range Filter */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">{t("filters.budget")}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
-                    <Label htmlFor="budget-min" className="text-xs text-muted-foreground">
-                      Minimum Budget
-                    </Label>
-                    <Input
-                      id="budget-min"
-                      type="number"
-                      placeholder="0"
-                      value={filters.budgetMin || ""}
-                      onChange={(e) => handleFilterChange("budgetMin", e.target.value ? Number(e.target.value) : undefined)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="budget-max" className="text-xs text-muted-foreground">
-                      Maximum Budget
-                    </Label>
-                    <Input
-                      id="budget-max"
-                      type="number"
-                      placeholder="No limit"
-                      value={filters.budgetMax || ""}
-                      onChange={(e) => handleFilterChange("budgetMax", e.target.value ? Number(e.target.value) : undefined)}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Actions */}
-              <div className="flex gap-2 pt-4">
-                <Button onClick={handleResetFilters} variant="outline" className="flex-1">
-                  {t("filters.reset")}
-                </Button>
-                <Button onClick={() => setIsFiltersOpen(false)} className="flex-1">
-                  Apply Filters
-                </Button>
+                </div>
               </div>
+
+              {/* Manager Filter */}
+              <div className="space-y-2">
+                <Label>{t('filters.manager')}</Label>
+                <Select
+                  value={filters.manager || ''}
+                  onValueChange={(value) =>
+                    onFiltersChange({ ...filters, manager: value || undefined })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select manager" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All managers</SelectItem>
+                    {/* TODO: Load actual managers from API */}
+                    <SelectItem value="manager1">John Doe</SelectItem>
+                    <SelectItem value="manager2">Jane Smith</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Date Range Filter */}
+              <div className="space-y-2">
+                <Label>{t('filters.dateRange')}</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="start_from" className="text-xs text-muted-foreground">
+                      From
+                    </Label>
+                    <Input
+                      id="start_from"
+                      type="date"
+                      value={filters.start_from || ''}
+                      onChange={(e) =>
+                        onFiltersChange({ ...filters, start_from: e.target.value || undefined })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="start_to" className="text-xs text-muted-foreground">
+                      To
+                    </Label>
+                    <Input
+                      id="start_to"
+                      type="date"
+                      value={filters.start_to || ''}
+                      onChange={(e) =>
+                        onFiltersChange({ ...filters, start_to: e.target.value || undefined })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Reset Button */}
+              <Button
+                variant="outline"
+                onClick={handleResetFilters}
+                className="w-full"
+              >
+                <X className="mr-2 h-4 w-4" />
+                {t('filters.reset')}
+              </Button>
             </div>
           </SheetContent>
         </Sheet>
-        
-        {/* Sort */}
-        <Select 
-          value={filters.sort || "updatedAt_desc"} 
-          onValueChange={(value) => handleFilterChange("sort", value)}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {SORT_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      {/* Right side - Actions */}
-      <div className="flex items-center gap-2">
-        {/* Active Filters Display */}
-        {activeFiltersCount > 0 && (
-          <div className="hidden sm:flex items-center gap-2">
-            {filters.status?.map((status) => (
-              <Badge key={status} variant="secondary" className="gap-1">
-                {t(`status.${status}`)}
-                <X 
-                  className="h-3 w-3 cursor-pointer" 
-                  onClick={() => handleStatusToggle(status)}
-                />
-              </Badge>
-            ))}
-            {filters.manager && (
-              <Badge variant="secondary" className="gap-1">
-                Manager: {MOCK_MANAGERS.find(m => m.id === filters.manager)?.name}
-                <X 
-                  className="h-3 w-3 cursor-pointer" 
-                  onClick={() => handleFilterChange("manager", "")}
-                />
-              </Badge>
-            )}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleResetFilters}
-              className="h-6 px-2 text-xs"
-            >
-              Clear all
-            </Button>
-          </div>
-        )}
-        
+
         {/* Create Project Button */}
-        {onCreateProject && (
-          <Button onClick={onCreateProject} className="gap-2">
-            <Plus className="h-4 w-4" />
-            {t("createProject")}
-          </Button>
-        )}
+        <Button onClick={onCreateProject}>
+          <Plus className="mr-2 h-4 w-4" />
+          {t('actions.create')}
+        </Button>
       </div>
+
+      {/* Active Filters Display */}
+      {getActiveFiltersCount() > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {filters.q && (
+            <Badge variant="secondary" className="gap-1">
+              Search: {filters.q}
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => {
+                  setSearchValue('');
+                  onFiltersChange({ ...filters, q: undefined });
+                }}
+              />
+            </Badge>
+          )}
+          {filters.status?.map((status) => (
+            <Badge key={status} variant="secondary" className="gap-1">
+              {t(`status.${status.replace('_', '')}`)}
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => {
+                  handleStatusChange(filters.status?.filter(s => s !== status) || []);
+                }}
+              />
+            </Badge>
+          ))}
+          {filters.manager && (
+            <Badge variant="secondary" className="gap-1">
+              Manager: {filters.manager}
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => onFiltersChange({ ...filters, manager: undefined })}
+              />
+            </Badge>
+          )}
+          {(filters.start_from || filters.start_to) && (
+            <Badge variant="secondary" className="gap-1">
+              Date: {filters.start_from || '...'} - {filters.start_to || '...'}
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => onFiltersChange({ 
+                  ...filters, 
+                  start_from: undefined, 
+                  start_to: undefined 
+                })}
+              />
+            </Badge>
+          )}
+        </div>
+      )}
     </div>
   );
 }
